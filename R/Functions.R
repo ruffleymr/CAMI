@@ -1,16 +1,21 @@
-##sims = The number of simulations; sims
-##N = The size of the regional communities, can be a single number or a prior range
-##local = The size of the local communities, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions
-
-##lambda = speciation rate, can be single number or prior range, defaul is prior betweenn
-##eps = the extinction fraction, extinction = lambda * eps
-##Sig2 = rate or character change, can be single value or prior range, defualt is a prior range
-##alpha = strength of pull to optimum, defualt is a prior range
-## Tau = the stregnth of the community assembly model is a prior range as well!
-##traitsim = either 'BM' or 'OU'
-##comsim = either 'neutral', 'filtering', or 'competition'
-
-## Function 1
+#' SimCommunityAssembly
+#'
+#' @param sims: The number of simulations; sims
+#' @param N: The size of the regional communities, can be a single number or a prior range
+#' @param local: size of the local communities, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions 
+#' @param traitsim: either 'BM' or 'OU'
+#' @param comsim: either "netural", "filtering", "competition"
+#' @param lambda: speciation rate, can be single number or prior range, default is a unifrom prior between 0.5 and 2.0
+#' @param eps: the extinction fraction, extinction (mu) = lambda * eps, default is a uniform prior between 0.2 and 0.8
+#' @param sig2: rate of character change, can be single value or prior range, defualt is a unifom prior range between 1.0 and 10.0
+#' @param alpha: pull to trait optimum, defualt is a uniform prior range between 0.01 and 0.2
+#' @param tau: stregnth of the community assembly model, default is a uniform prior range between 5.0 and 5.0
+#'
+#' @return output is a list of two matrices, one containing all parameter values for each simulation, and the other containing all 
+#'         summary statistics. In both matrices, each row corresponds to one simulation
+#' @export
+#'
+#' @examples
 SimCommunityAssembly <- function(sims, N, local,
                                  traitsim,
                                  comsim,
@@ -110,8 +115,12 @@ SimCommunityAssembly <- function(sims, N, local,
       tau.drawn <- runif(1, tau[1], tau[2])
 
     #Simulate Regional Tree
-    n = N * local
-    mu = lambda.drawn*eps.drawn
+    if (is.integer(local)){
+      n <- local
+    }else{
+      n <- N * local
+    }
+    mu <- lambda.drawn*eps.drawn
     regional.tree <- sim.bd.taxa(n=N, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
 
     #Simulate Regional Traits
@@ -180,9 +189,17 @@ SimCommunityAssembly <- function(sims, N, local,
 
 }
 
-
-
-## Function 2
+#' CalcSummaryStats
+#'
+#' @param regional.tree: regional community phylogenetic tree, of class "phylo"
+#' @param local.tree: local community phylogenetic tree, of class "phylo"
+#' @param regional.traits: trait values for each species in regional community, vector or list
+#' @param local.traits: trait values for each species in local community, vector or list
+#'
+#' @return vector of summary statistics
+#' @export
+#'
+#' @examples: 
 CalcSummaryStats <- function(regional.tree,
                              local.tree,
                              regional.traits,
