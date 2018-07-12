@@ -67,7 +67,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  "Cvar",			#11
                                  "Svar",			#12
                                  "Shgt",			#13
-                                 "Dcdf",			#14	
+                                 "Dcdf",			#14
                                  "Skw",			  #15
                                  "Krts",			#16
                                  "MnRegTr",		#17
@@ -79,7 +79,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  "MnBlDif",		#23
                                  "VarBlDif",	#24
                                  "Amp1",			#25
-                                 "Amp2",			#26	
+                                 "Amp2",			#26
                                  "BiCoef",		#27
                                  "BiRatio",		#28
                                  "Mode1",		  #29
@@ -87,7 +87,7 @@ SimCommunityAssembly <- function(sims, N, local,
 
   ##initiate progress bar
   pb <- txtProgressBar(min = 0, max = sims, style = 3)
-  
+
   for (i in 1:sims){
 
     #drawn N if prior
@@ -108,7 +108,7 @@ SimCommunityAssembly <- function(sims, N, local,
     #draw tau
     if (length(tau) > 1)
       tau.drawn <- runif(1, tau[1], tau[2])
-    
+
     #Simulate Regional Tree
     n = N * local
     mu = lambda.drawn*eps.drawn
@@ -125,7 +125,7 @@ SimCommunityAssembly <- function(sims, N, local,
 
 
     #Simulate Community under given method
-    rej = 0 
+    rej = 0
     if (comsim == "neutral"){
       local.traits <- sample(traits, n)
       probs = c(1,1)
@@ -161,18 +161,18 @@ SimCommunityAssembly <- function(sims, N, local,
     #construct local tree
     local.tree <- drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))
     #local.tree <- keep.tip(regional.tree, names(local.traits))
-    
+
     #Store all parameters for each simulation and data produced
     params[i, ] <- c(i, comsim, traitsim, N, n, lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
-    
-    ##calculate all summary statistics 
+
+    ##calculate all summary statistics
     summary.stats[i, ] <- CalcSummaryStats(regional.tree, local.tree, regional.traits, local.traits)
-    
+
     Sys.sleep(.1)
     # update progress bar
     setTxtProgressBar(pb, i)
   }
-  
+
   output <- list(params, summary.stats)
   names(output) <- c("params", "summary.stats")
   close(pb)
@@ -180,16 +180,14 @@ SimCommunityAssembly <- function(sims, N, local,
 
 }
 
-test.runs <- SimCommunityAssembly(sims=20, N=200, local=0.5,
-                                  traitsim="BM",
-                                  comsim="filtering")
+
 
 ## Function 2
 CalcSummaryStats <- function(regional.tree,
-                             local.tree, 
-                             regional.traits, 
+                             local.tree,
+                             regional.traits,
                              local.traits){
-  
+
   if (class(regional.tree)!="phylo")
     stop("'regional.tree' is not a phylo object", call. = F)
   if (class(local.tree)!="phylo")
@@ -198,108 +196,108 @@ CalcSummaryStats <- function(regional.tree,
     stop("Number of regional traits does not match the number of tips on the regional tree", call. = F)
   if (length(local.traits)!=length(local.tree$tip.label))
     stop("Number of local traits does not match the number of tips on the local tree", call. = F)
-  
+
   ## 1. Mean branch length in local tree
   mean.branch.local.tree <- mean(local.tree$edge.length)
-  
+
   ## 2. Variance of branch lengths in local tree
   var.branch.local.tree <- var(local.tree$edge.length)
-  
+
   ## 3. Mean trait value in local community
   mean.trait.local <- mean(local.traits)
-  
+
   ## 4. Variance of trait values in local community
   var.trait.local <- var(local.traits)
-  
+
   ## 5. Moran's autocorrelation index
   w <- 1/cophenetic(local.tree)
   diag(w) <- 0
   MI <-  Moran.I(local.traits, w)$observed
-  
+
   ## 6. Maximum node depth
   max.depth <- max(node.depth.edgelength(local.tree))
-  
+
   ## 7. Colless index
   colless <- colless(as.treeshape(local.tree))
-  
+
   ## 8. Sackin index
   sackin <- sackin(as.treeshape(local.tree))
-  
+
   ## 9. lineage through time plot differences between regional and local tree
   nLTT <- nLTTstat_exact(regional.tree, local.tree)
-  
+
   ## 10. Mean of squared phylogenetic independent contrasts in local communtiy
   PIC <- pic(local.traits, local.tree, var.contrasts=T)
   Msig <- mean(PIC[,1]^2)
-  
+
   ## 11. Standard devation of PICs in local over the mean PICs in local
   Cvar <- sd(PIC[,1])/mean(PIC[,1])
-  
+
   ## 12. slope of linear model between abs(PICs) and the expected variance in PICs
   Svar <- lm(abs(PIC[,1]) ~ PIC[,2])$coefficients[2]
-  
-  ## 13. Slope of linear model between the absolute magnitude of the standardized independent contrasts 
+
+  ## 13. Slope of linear model between the absolute magnitude of the standardized independent contrasts
   ##     and the height above the root of the node at which they were being compared
   Shgt.lm <- nh.test(local.tree, local.traits[local.tree$tip.label], regression.type="lm", show.plot=FALSE)
   Shgt <- Shgt.lm$coefficients[2]
-  
+
   ## 14. D statistic from KS.test between PIC of local communtiy and expect variance under BM
   expCont.BM <- rnorm(n=length(local.traits), mean=0, sd=sqrt(mean(PIC[,1]^2)))
   Dcdf <- ks.test(PIC[,1], expCont.BM)$statistic
-  
+
   ## 15. skeness of local community traits
   skew <- skewness(local.traits)
-  
+
   ## 16. Kurtosis of local community traits
   kurt <- kurtosis(local.traits, finite=T)
-  
+
   ## 17. Mean of regional trait values
   mean.trait.reg <- mean(regional.traits)
-  
+
   ## 18. Variance of regional trait values
   var.trait.reg <- var(regional.traits)
-  
+
   ## 19. Difference in mean of trait values between regional and local communities
   mean.trait.dif <- mean.trait.reg - mean.trait.local
-  
+
   ## 20. Difference in variance of trait values between regional and local communities
   var.trait.dif <- var.trait.reg - var.trait.local
-  
+
   ## 21. Mean branch length in regional tree
   mean.branch.reg.tree <- mean(regional.tree$edge.length)
-  
+
   ## 22. Variance of branch lengths in regional tree
   var.branch.reg.tree <- var(regional.tree$edge.length)
-  
+
   ## 23. Difference between mean of branch lengths between local and regional tree
   mean.branch.dif <- mean.branch.reg.tree - mean.branch.local.tree
-  
+
   ## 24. Difference between variance of branch lengths between local and regional tree
   var.branch.dif <- var.branch.reg.tree - var.branch.local.tree
-  
+
   ## 25. density peak location in local community traits
   amp <- amps(local.traits)$Peaks
   amp1 <- amp[1]
-  
+
   ## 26. density peak amplitude in local community traits
   amp2 <- amp[2]
-  
+
   ## 27. Bimodality coefficient
   bimo.coef <- bimodality_coefficient(local.traits)
-  
+
   ## 28. Bimodality ratio
   bimodal <- bimodality_ratio(local.traits)
   if (is.na(bimodal)){
     bimodal <- 0
   }
-  
-  ## 29.  
+
+  ## 29.
   modes <- modes(local.traits)
   modes1 <- modes[1]
-  
+
   ## 30.
   modes2 <- modes[2]
-  
+
   stats <-  c(mean.branch.local.tree, 	#1
               var.branch.local.tree,		#2
               mean.trait.local,		#3
@@ -313,7 +311,7 @@ CalcSummaryStats <- function(regional.tree,
               Cvar,			#11
               Svar,			#12
               Shgt,			#13
-              Dcdf,			#14	
+              Dcdf,			#14
               skew,			  #15
               kurt,			#16
               mean.trait.reg,		#17
@@ -325,12 +323,12 @@ CalcSummaryStats <- function(regional.tree,
               mean.branch.dif,		#23
               var.branch.dif,	#24
               amp1,			#25
-              amp2,			#26	
+              amp2,			#26
               bimo.coef,		#27
               bimodal,		#28
               modes1,		  #29
               modes2)		  #30
-  
+
   names(stats) <- c("Mean.BL", 	#1
                     "Var.BL",		#2
                     "Mean.Tr",		#3
@@ -344,7 +342,7 @@ CalcSummaryStats <- function(regional.tree,
                     "Cvar",			#11
                     "Svar",			#12
                     "Shgt",			#13
-                    "Dcdf",			#14	
+                    "Dcdf",			#14
                     "Skw",			  #15
                     "Krts",			#16
                     "MnRegTr",		#17
@@ -356,14 +354,12 @@ CalcSummaryStats <- function(regional.tree,
                     "MnBlDif",		#23
                     "VarBlDif",	#24
                     "Amp1",			#25
-                    "Amp2",			#26	
+                    "Amp2",			#26
                     "BiCoef",		#27
                     "BiRatio",		#28
                     "Mode1",		  #29
                     "Mode2")		  #30
-  
+
   return(stats)
-  
+
 }
-
-
