@@ -1,13 +1,13 @@
-Package: CARF
+Package: CAMI
 Title: Identify models of community assembly using ABC and randomForest algorithms
 Version: 1.0.0
 Authors@R: person("Megan", "Ruffley", email = "MeganRRuffley@gmail.com", role = c("aut", "cre"))
 Description: This package is to make community assembly inferences and/or perform simulations experiments. Here, one can simulate
     community assembly models such as neutral, habitat filtering, and competitive exclusion. Once can then summarize the simulated data
-    of these models into summary statistics and use those summary statistics to perform model selection using ABC and randomForest. 
+    of these models into summary statistics and use those summary statistics to perform model selection using ABC and randomForest.
     One can also perform parameter estimation for the strength of filtering or competition, should those models be selected. Model adequacy
-    and posterior predictive simulations can be performed. Empirical data can also be imported and one can calculate summary statistics of 
-    their own data. 
+    and posterior predictive simulations can be performed. Empirical data can also be imported and one can calculate summary statistics of
+    their own data.
 Depends: R (>= 3.3.2)
 Imports:
     abc,
@@ -18,9 +18,9 @@ Imports:
     phytools,
     randomForest,
     TreeSim
-License: NA
-Encoding: NA
-LazyData: NA
+License:
+Encoding:
+LazyData: 
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
