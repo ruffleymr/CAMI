@@ -11,7 +11,7 @@ Description: This package is to make community assembly inferences and/or perfor
 Depends: R (>= 3.3.2)
 Imports:
     abc,
-    apTreeshape
+    apTreeshape,
     geiger,
     modes,
     nLTT,
@@ -20,7 +20,7 @@ Imports:
     TreeSim
 License:
 Encoding:
-LazyData: 
+LazyData:
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
