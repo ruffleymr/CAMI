@@ -168,7 +168,7 @@ SimCommunityAssembly <- function(sims, N, local,
     }
 
     #construct local tree
-    local.tree <- drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))
+    local.tree <- ape::drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))
     #local.tree <- keep.tip(regional.tree, names(local.traits))
 
     #Store all parameters for each simulation and data produced
@@ -232,19 +232,19 @@ CalcSummaryStats <- function(regional.tree,
   MI <-  Moran.I(local.traits, w)$observed
 
   ## 6. Maximum node depth
-  max.depth <- max(node.depth.edgelength(local.tree))
+  max.depth <- max(ape::node.depth.edgelength(local.tree))
 
   ## 7. Colless index
-  colless <- colless(as.treeshape(local.tree))
+  colless <- apTreeshape::colless(as.treeshape(local.tree))
 
   ## 8. Sackin index
-  sackin <- sackin(as.treeshape(local.tree))
+  sackin <- apTreeshape::sackin(as.treeshape(local.tree))
 
   ## 9. lineage through time plot differences between regional and local tree
-  nLTT <- nLTTstat_exact(regional.tree, local.tree)
+  nLTT <- nLTT::nLTTstat_exact(regional.tree, local.tree)
 
   ## 10. Mean of squared phylogenetic independent contrasts in local communtiy
-  PIC <- pic(local.traits, local.tree, var.contrasts=T)
+  PIC <- ape::pic(local.traits, local.tree, var.contrasts=T)
   Msig <- mean(PIC[,1]^2)
 
   ## 11. Standard devation of PICs in local over the mean PICs in local
@@ -255,7 +255,7 @@ CalcSummaryStats <- function(regional.tree,
 
   ## 13. Slope of linear model between the absolute magnitude of the standardized independent contrasts
   ##     and the height above the root of the node at which they were being compared
-  Shgt.lm <- nh.test(local.tree, local.traits[local.tree$tip.label], regression.type="lm", show.plot=FALSE)
+  Shgt.lm <- geiger::nh.test(local.tree, local.traits[local.tree$tip.label], regression.type="lm", show.plot=FALSE)
   Shgt <- Shgt.lm$coefficients[2]
 
   ## 14. D statistic from KS.test between PIC of local communtiy and expect variance under BM
@@ -263,10 +263,10 @@ CalcSummaryStats <- function(regional.tree,
   Dcdf <- ks.test(PIC[,1], expCont.BM)$statistic
 
   ## 15. skeness of local community traits
-  skew <- skewness(local.traits)
+  skew <- modes::skewness(local.traits)
 
   ## 16. Kurtosis of local community traits
-  kurt <- kurtosis(local.traits, finite=T)
+  kurt <- modes::kurtosis(local.traits, finite=T)
 
   ## 17. Mean of regional trait values
   mean.trait.reg <- mean(regional.traits)
@@ -293,23 +293,23 @@ CalcSummaryStats <- function(regional.tree,
   var.branch.dif <- var.branch.reg.tree - var.branch.local.tree
 
   ## 25. density peak location in local community traits
-  amp <- amps(local.traits)$Peaks
+  amp <- modes::amps(local.traits)$Peaks
   amp1 <- amp[1]
 
   ## 26. density peak amplitude in local community traits
   amp2 <- amp[2]
 
   ## 27. Bimodality coefficient
-  bimo.coef <- bimodality_coefficient(local.traits)
+  bimo.coef <- modes::bimodality_coefficient(local.traits)
 
   ## 28. Bimodality ratio
-  bimodal <- bimodality_ratio(local.traits)
+  bimodal <- modes::bimodality_ratio(local.traits)
   if (is.na(bimodal)){
     bimodal <- 0
   }
 
   ## 29.
-  modes <- modes(local.traits)
+  modes <- modes::modes(local.traits)
   modes1 <- modes[1]
 
   ## 30.

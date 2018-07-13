@@ -11,6 +11,7 @@ Description: This package is to make community assembly inferences and/or perfor
 Depends: R (>= 3.3.2)
 Imports:
     abc,
+    ape,
     apTreeshape,
     geiger,
     modes,
