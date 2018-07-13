@@ -229,7 +229,7 @@ CalcSummaryStats <- function(regional.tree,
   ## 5. Moran's autocorrelation index
   w <- 1/cophenetic(local.tree)
   diag(w) <- 0
-  MI <-  Moran.I(local.traits, w)$observed
+  MI <-  ape::Moran.I(local.traits, w)$observed
 
   ## 6. Maximum node depth
   max.depth <- max(ape::node.depth.edgelength(local.tree))
