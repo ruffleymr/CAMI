@@ -235,10 +235,10 @@ CalcSummaryStats <- function(regional.tree,
   max.depth <- max(ape::node.depth.edgelength(local.tree))
 
   ## 7. Colless index
-  colless <- apTreeshape::colless(as.treeshape(local.tree))
+  colless <- apTreeshape::colless(apTreeshape::as.treeshape(local.tree))
 
   ## 8. Sackin index
-  sackin <- apTreeshape::sackin(as.treeshape(local.tree))
+  sackin <- apTreeshape::sackin(apTreeshape::as.treeshape(local.tree))
 
   ## 9. lineage through time plot differences between regional and local tree
   nLTT <- nLTT::nLTTstat_exact(regional.tree, local.tree)
