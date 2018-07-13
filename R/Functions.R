@@ -121,13 +121,13 @@ SimCommunityAssembly <- function(sims, N, local,
       n <- N * local
     }
     mu <- lambda.drawn*eps.drawn
-    regional.tree <- sim.bd.taxa(n=N, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
+    regional.tree <- TreeSim::sim.bd.taxa(n=N, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
 
     #Simulate Regional Traits
     if (traitsim == "BM") {
-      traits <- sim.char(regional.tree, par=sig2.drawn, nsim=1, model="BM", root=0)[,,1]
+      traits <- geiger::sim.char(regional.tree, par=sig2.drawn, nsim=1, model="BM", root=0)[,,1]
     }else {
-      traits <- fastBM(regional.tree, a=0, theta=0, alpha=alpha.drawn, sig2=sig2.drawn, internal=FALSE)
+      traits <- phytools::fastBM(regional.tree, a=0, theta=0, alpha=alpha.drawn, sig2=sig2.drawn, internal=FALSE)
     }
     #store all regional traits here for calculating summary stats
     regional.traits <- traits

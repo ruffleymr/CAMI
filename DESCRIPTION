@@ -20,7 +20,7 @@ Imports:
     TreeSim
 License:
 Encoding:
-LazyData:
+LazyData: true
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

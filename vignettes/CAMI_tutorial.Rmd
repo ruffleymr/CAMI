@@ -10,8 +10,13 @@ vignette: >
 ---
 
 ```{r}
+library(devtools)
+devtools::install_github("ruffleymr/CAMI")
+library(CAMI)
 
-
+b <- SimCommunityAssembly(sims=5, N=100, local=.5,
+                                 traitsim="BM",
+                                 comsim="neutral")
 
 ```
 
