@@ -8,35 +8,62 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+## Community Assembly Model Inference
+
+#### Installation
+This tutorial shows one how to install the CAMI package, simualte community assembly data, and perform cross validation of model selection using random forest and approximate bayesian computation (ABC).
+
+We will begin by installing **devtools**. Devtools is an R package that enables the development of other R packages. You can use devtools to install a package that is managed in a github repository. We will install CAMI this way. 
+
+```{r message=FALSE}
+install.packages("devtools")
+require(devtools)
+devtools::install_github("ruffleymr/CAMI")
+require("CAMI")
+
+```
+
+#### Simulation of Data
+
+We will simulate the community assembly data using the function _SimCommunityAssembly_. The function first simulates a regional community phylogeny and traits on that phylogeny. Then, using that information, the local community is assembled by either neutral, habitat filtering, or compeitive exclusion processes. 
+
+Before we simulate data, let's go through the parameters of the function.
+
+-**sims** indicates the number of communities to simulate. No default.
+-**N** is the number of species in the regional community. No default.
+-**local** is the size of the local community, this parameter can be an integer or a proportion. If a proporiton, then the size of the local community will be **N** * **local**. No default.
+-**traitsim** indicates the model of trait evolution to use when simulating traits on the local phylogeny, can be either "BM" (default) for Brownian Motion or "OU" for Ornstein-Uhlenbeck.
+-**comsim** indicates the community assembly model to simulate under, either "netural" (default), "filtering", "competition".
+-**lambda** is the speciate rate of the birth death process used to simulate the regional phylogeny. It can be single number or prior range, the default is a uniform distribution between 0.05 and 2.0.
+-**eps** is the extinction fraction, where extinction (_mu_) = **lambda** * **eps**. The default is a uniform prior distribution between 0.2 and 0.8.
+-**sig2** is rate of character change, this can be single value or prior range. The defualt is a unifom prior distribution between 1.0 and 10.0.
+-**alpha** is the pull to trait optimum, only used when simulate "OU" trait evolution models. The defualt is a uniform prior distribution between 0.01 and 0.2.
+-**tau** is the stregnth of the community assembly model under "filtering" and "competition". The default is a uniform prior distribution between 5.0 and 5.0.
+
+Now we can start simulating data. We will first simulate 1000 communites, where each communities has 100 species in the regional community, half the amount of species in the local community, a "BM" model of trait evolution, and a "neutral" model of community assembly. We will leave all other parameters with the default priors.
 
 ```{r}
-library(devtools)
-devtools::install_github("ruffleymr/CAMI")
-library(CAMI)
-
-b <- SimCommunityAssembly(sims=5, N=100, local=.5,
+Neutral.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
                                  traitsim="BM",
                                  comsim="neutral")
 
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+```{r}
+Filtering.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
+                                 traitsim="BM",
+                                 comsim="filtering")
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+```
 
-## Vignette Info
+```{r}
+Competition.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
+                                 traitsim="BM",
+                                 comsim="competition")
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+```
 
-## Styles
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
 
 ## Figures
 
