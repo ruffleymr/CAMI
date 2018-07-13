@@ -235,7 +235,7 @@ CalcSummaryStats <- function(regional.tree,
   max.depth <- max(ape::node.depth.edgelength(local.tree))
 
   ## 7. Colless index
-  local.tree.shaped <- apTreeshape::as.treeshape(local.tree[[1]])
+  local.tree.shaped <- apTreeshape::as.treeshape(local.tree)
   colless <- apTreeshape::colless(local.tree.shaped)
 
   ## 8. Sackin index
