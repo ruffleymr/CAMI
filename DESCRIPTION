@@ -12,10 +12,10 @@ Depends: R (>= 3.3.2)
 Imports:
     abc,
     ape,
-    apTreeshape,
     geiger,
     modes,
     nLTT,
+    phyloTop,
     phytools,
     randomForest,
     TreeSim
