@@ -10,24 +10,25 @@ vignette: >
 ---
 ## Community Assembly Model Inference
 
-#### Installation
+### Installation
 This tutorial shows one how to install the CAMI package, simualte community assembly data, and perform cross validation of model selection using random forest and approximate bayesian computation (ABC).
 
 We will begin by installing **devtools**. Devtools is an R package that enables the development of other R packages. You can use devtools to install a package that is managed in a github repository. We will install CAMI this way. 
 
 ```{r message=FALSE}
-install.packages("devtools")
+#install.packages("devtools")
 require(devtools)
 devtools::install_github("ruffleymr/CAMI")
 require("CAMI")
 
 ```
 
-#### Simulation of Data
+### Simulation of Data
 
 We will simulate the community assembly data using the function _SimCommunityAssembly_. The function first simulates a regional community phylogeny and traits on that phylogeny. Then, using that information, the local community is assembled by either neutral, habitat filtering, or compeitive exclusion processes. 
 
-Before we simulate data, let's go through the parameters of the function.
+#####Parameters 
+Before we simulate data, let's go through the parameters of the function. 
 
 -**sims** indicates the number of communities to simulate. No default.
 -**N** is the number of species in the regional community. No default.
@@ -40,57 +41,42 @@ Before we simulate data, let's go through the parameters of the function.
 -**alpha** is the pull to trait optimum, only used when simulate "OU" trait evolution models. The defualt is a uniform prior distribution between 0.01 and 0.2.
 -**tau** is the stregnth of the community assembly model under "filtering" and "competition". The default is a uniform prior distribution between 5.0 and 5.0.
 
-Now we can start simulating data. We will first simulate 1000 communites, where each communities has 100 species in the regional community, half the amount of species in the local community, a "BM" model of trait evolution, and a "neutral" model of community assembly. We will leave all other parameters with the default priors.
+You can also view this information in the help documentation using '?SimCommunityAssembly'
+
+#####Simulation
+Now we can start simulating data. We will first simulate 1000 communites, where each community is comprised of 100 species in the regional community, half the amount of species in the local community, a "BM" model of trait evolution, and a "neutral" model of community assembly. We will leave all other parameters as their default settings
+
+```{r message=FALSE}
+#simulate neutral community assembly data
+Neutral.Sims <- SimCommunityAssembly(sims = 100, N = 100, local = 0.5,
+                                 traitsim = "BM",
+                                 comsim = "neutral")
+
+```
+
+The output of the function is a list of two matrices. The first matrix is of all _parameters_ and the second matrix contains all _summary.stats_. In both cases, each row in the matrix is a unique simulation and the rows between matrices correspond.
 
 ```{r}
-Neutral.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
-                                 traitsim="BM",
-                                 comsim="neutral")
+#two matrices, 'params' and 'summary.stats'
+head(Neutral.Sims$params)
+head(Neutral.Sims$summary.stats)
 
 ```
 
-```{r}
-Filtering.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
-                                 traitsim="BM",
-                                 comsim="filtering")
+We can also plot the distribution of parameters to ensure we simulated under the correct prior range. 
+
+```{r }
+#For example, the prior distribution for Sig2 was a uniform distribution between 1.0 and 10.0
+hist(as.numeric(Neutral.Sims$params[,8]), breaks=50, main="Sig2")
+```
+
+We can also simulate under alternative models of community assembly and trait evolution, and add/change prior ranges.
+
+```{r message=FALSE}
+Filtering.Sims <- SimCommunityAssembly(sims = 100, N = c(100,200), local = 0.5,
+                                 traitsim = "OU",
+                                 comsim = "filtering",
+                                 sig2 = c(2.0, 5.0))
 
 ```
 
-```{r}
-Competition.Sims <- SimCommunityAssembly(sims=1000, N=100, local=.5,
-                                 traitsim="BM",
-                                 comsim="competition")
-
-```
-
-
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))

@@ -15,7 +15,7 @@
 #'         summary statistics. In both matrices, each row corresponds to one simulation
 #' @export
 #'
-#' @examples
+#' @examples 
 SimCommunityAssembly <- function(sims, N, local,
                                  traitsim,
                                  comsim,
@@ -182,7 +182,7 @@ SimCommunityAssembly <- function(sims, N, local,
     setTxtProgressBar(pb, i)
   }
 
-  output <- list(params, summary.stats)
+  output <- list(data.frame(params), summary.stats)
   names(output) <- c("params", "summary.stats")
   close(pb)
   return(output)
@@ -380,3 +380,5 @@ CalcSummaryStats <- function(regional.tree,
   return(stats)
 
 }
+
+
