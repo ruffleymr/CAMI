@@ -19,6 +19,7 @@
 SimCommunityAssembly <- function(sims, N, local,
                                  traitsim,
                                  comsim,
+                                 disable.bar = FALSE,
                                  lambda = c(0.05, 2.0),
                                  eps = c(0.2, 0.8),
                                  sig2 = c(1, 10),
@@ -91,8 +92,10 @@ SimCommunityAssembly <- function(sims, N, local,
                                  "Mode2")		  #30
 
   ##initiate progress bar
+  if (disable.bar == FALSE){
   pb <- txtProgressBar(min = 0, max = sims, style = 3)
-
+  }
+  
   for (i in 1:sims){
 
     #drawn N if prior
@@ -113,13 +116,18 @@ SimCommunityAssembly <- function(sims, N, local,
     #draw tau
     if (length(tau) > 1)
       tau.drawn <- runif(1, tau[1], tau[2])
-
-    #Simulate Regional Tree
-    if (is.integer(local)){
-      n <- local
+    #set local community size
+    if (length(local) > 1){
+      n <- N * runif(1, local[1], local[2])
     }else{
-      n <- N * local
+      if (is.integer(local)){
+        n <- local
+      }else{
+        n <- N * local
+      }
     }
+      
+    #Simulate Regional Community
     mu <- lambda.drawn*eps.drawn
     regional.tree <- TreeSim::sim.bd.taxa(n=N, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
 
@@ -148,7 +156,7 @@ SimCommunityAssembly <- function(sims, N, local,
 
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
       probs = c()
-      while (length(local.traits) < n && !rej > 5000) {
+      while (length(local.traits) < n && !rej > 10000) {
         Xj <- sample(traits,1)
         #calculate the probability of acceptance for this species into community, determined by Tau and the mean of the local trait values
         Pj <- (exp(-((mean(local.traits)-Xj)^2)/tau.drawn))
