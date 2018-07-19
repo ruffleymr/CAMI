@@ -180,7 +180,7 @@ SimCommunityAssembly <- function(sims, N, local,
     #local.tree <- keep.tip(regional.tree, names(local.traits))
 
     #Store all parameters for each simulation and data produced
-    params[i, ] <- c(i, comsim, traitsim, N, n, lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
+    params[i, ] <- c(i, comsim, traitsim, N, length(local.traits), lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
 
     ##calculate all summary statistics
     summary.stats[i, ] <- CalcSummaryStats(regional.tree, local.tree, regional.traits, local.traits)

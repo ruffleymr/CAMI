@@ -31,12 +31,13 @@ For the power analysis, there are two elements we want to check out. The first b
 
 ```{r message=FALSE, results='hide'}
 
-#We will simulate under varying sizes of regional communities, these numbers set the lower bounds for simulations
+#The simulations take about XX / simulation. This script ran, as is, for approximately 12 hours on my local machine
 sample.sizes <- c(100,200,300,400,500,600,700,800,900)
+sims <- 10
+SimOutput <- list()
 
-for (i in 1:3) {
+for (i in 1:length(sample.sizes)) {
   reg.com.size <- c(sample.sizes[i], sample.sizes[i]+100)
-  sims <- 100
   
   #BM models
   BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")
@@ -48,14 +49,113 @@ for (i in 1:3) {
   OU.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "filtering")
   OU.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "competition")
   
-  All.Summ.Stats <- rbind(BM.neutral$summary.stats, BM.filtering$summary.stats, BM.competition$summary.stats,
-                          OU.neutral$summary.stats, OU.filtering$summary.stats, OU.competition$summary.stats)
-  Model.Index <- rep(c("BMneut", "BMfilt", "BMcomp", "OUneut", "OUfilt", "OUcomp"), each = sims)
+  SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)
+  print(paste("completed simulations of sample size", sample.sizes[i]))
   
-  Ref.Table <- data.frame(All.Summ.Stats, Model.Index)
 }
 
+#save output object, which is a list of lists
+save(SimOutput, file="SimOutput.Rdata")
 
-rf <- randomForest(Model.Index ~., data=Ref.Table, ntree=500, importance=T)
-rf
+load(file="SimOutput.Rdata")
+```
+
+### Random Forest
+
+We will use the simulated data from each of the datasets to build several randomForest classifiers. As each classifier is built, the out-of-bag (OOB) error rates will be estimated simultaneously. The error rate will inform as to how well randomForest can classify these data. We will also look at these error rates with respect to the sample size of the communities to understand whether the error rates decrease with an increase in sample size of communities. 
+
+```{r}
+#create an empty vector to store error rates of each classifier
+RF.Objects <- list()
+RF.ErrRates <- c()
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- c()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  #This is the response variable in the random forest analysis
+  Model.Index <- rep(rep(c("BM.neut", "BM.filt", "BM.comp", "OU.neut", "OU.filt", "OU.comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  Ref.Table <- na.omit(data.frame(all.sum.stats, Model.Index))
+  
+  #set number of trees here
+  ntree=100
+  
+  #build random forest classifier and record the error rate
+	RF.Objects[[i]] <- randomForest(Model.Index ~., data=Ref.Table, ntree=ntree, importance=T)
+	RF.ErrRates <- c(RF.ErrRates, RF.Objects[[i]]$err.rate[ntree,1]*100)
+	
+	print(paste("finished RF classifier for sample size", sample.sizes[i], "with error rate", RF.ErrRates[i]))
+}
+```
+
+Now we can check whether the error rates for random forest decrease with increasing sample size. Let's plot sample size with OOB error rate and see. 
+
+```{r}
+require(ggplot2)
+
+power <- data.frame(sample.sizes, RF.ErrRates)
+ggplot(power, aes(x=sample.sizes, y=RF.ErrRates, group=1)) +
+  geom_line(linetype="dashed") +
+  geom_point()
+
+```
+
+We can see in the plot the error rates actually increase with increasing sample size, which is quite uncommon and warrants additional investigations into the RF classifiers.
+
+We can view a RF classifier and see if there is any information in the confusion matrix. This matrix conveys more information than just the OOB rates because not only does it provide the number of simulations classified as the correct model, but it also shows where the incorrectly classified models are being classified. 
+
+We can look at the first RF object that has a very low error rate. This RF classifer was constructed with regional communities that had 100 - 200 species.
+```{r}
+RF.Objects[[1]]
+```
+
+We can also look at the RF classifiers that had higher error rates and see what the confusion matrix tells us. 
+
+```{r}
+RF.Objects[[9]]
+```
+
+This RF classifer was constructed with regional communities that had 900 - 1000 species, and we can see that models that are typical incorrectly classified are mostly just classified as the wrong model of trait evolution, while the communtiy assembly model is correct. This could be because as the communities get larger and larger, distinguishing between BM and OU, after the assembly process has been completed, may be quite difficult. 
+
+For the last inspection of power for Random Forest we are going to try to just classify models by their community assmebly process and not by the model of trait evolution used for simulation. Then we can inspect, again, whether error rates decrease with increasing sample size.
+
+```{r}
+#create an empty vector to store error rates of each classifier
+RF.Objects <- list()
+RF.ErrRates <- c()
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- c()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  #This is the response variable in the random forest analysis
+  
+  #I just removed the "BM" and "OU" marks before each of these categorical variables
+  Model.Index <- rep(rep(c("neut", "filt", "comp", "neut", "filt", "comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  Ref.Table <- na.omit(data.frame(all.sum.stats, Model.Index))
+  
+  #set number of trees here
+  ntree=100
+  
+  #build random forest classifier and record the error rate
+	RF.Objects[[i]] <- randomForest(Model.Index ~., data=Ref.Table, ntree=ntree, importance=T)
+	RF.ErrRates <- c(RF.ErrRates, RF.Objects[[i]]$err.rate[ntree,1]*100)
+	
+	print(paste("finished RF classifier for sample size", sample.sizes[i], "with error rate", RF.ErrRates[i]))
+}
+
+power <- data.frame(sample.sizes, RF.ErrRates)
+ggplot(power, aes(x=sample.sizes, y=RF.ErrRates, group=1)) +
+  geom_line(linetype="dashed") +
+  geom_point()
 ```
