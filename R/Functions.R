@@ -99,8 +99,9 @@ SimCommunityAssembly <- function(sims, N, local,
   for (i in 1:sims){
 
     #drawn N if prior
-    if (length(N) > 1)
-      N <- runif(1, N[1], N[2])
+    if (length(N) > 1){
+      N.drawn <- runif(1, N[1], N[2])
+    }else {N.drawn <- N}
     #draw lambda
     if (length(lambda) > 1)
       lambda.drawn <- runif(1, lambda[1], lambda[2])
@@ -118,18 +119,18 @@ SimCommunityAssembly <- function(sims, N, local,
       tau.drawn <- runif(1, tau[1], tau[2])
     #set local community size
     if (length(local) > 1){
-      n <- N * runif(1, local[1], local[2])
+      n <- N.drawn * runif(1, local[1], local[2])
     }else{
       if (is.integer(local)){
         n <- local
       }else{
-        n <- N * local
+        n <- N.drawn * local
       }
     }
       
     #Simulate Regional Community
     mu <- lambda.drawn*eps.drawn
-    regional.tree <- TreeSim::sim.bd.taxa(n=N, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
+    regional.tree <- TreeSim::sim.bd.taxa(n=N.drawn, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
 
     #Simulate Regional Traits
     if (traitsim == "BM") {
