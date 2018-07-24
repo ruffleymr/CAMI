@@ -227,6 +227,7 @@ SimCommunityAssembly <- function(sims, N, local,
   if (output.sum.stats == TRUE && output.phydisp.stats == FALSE) {
     output <- list(data.frame(params), summary.stats)
     names(output) <- c("params", "summary.stats")
+  }
   if (output.sum.stats == FALSE && output.phydisp.stats == TRUE) {
     output <- list(data.frame(params), phydisp.stats)
     names(output) <- c("params", "phydisp.stats")
@@ -235,8 +236,6 @@ SimCommunityAssembly <- function(sims, N, local,
   close(pb)
   return(output)
 }
-
-
 
 
 #' CalcSummaryStats
