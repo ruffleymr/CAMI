@@ -436,7 +436,7 @@ CalcPhyDispStats <- function(regional.tree,
                              local.tree,
                              regional.traits,
                              local.traits){
- 
+
   if (class(regional.tree)!="phylo")
     stop("'regional.tree' is not a phylo object", call. = F)
   if (class(local.tree)!="phylo")
@@ -456,8 +456,8 @@ CalcPhyDispStats <- function(regional.tree,
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
       
   #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
-  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=500)[1,]
-  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=500)[1,]
+  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
   
   output <- unlist(c(ses.mpd[1:8], ses.mntd[1:8]))
   return(output)
