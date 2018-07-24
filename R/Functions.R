@@ -421,12 +421,22 @@ CalcSummaryStats <- function(regional.tree,
 }
 
 
-
+#' CalcPhyDispStats
+#'
+#' @param regional.tree: regional community phylogenetic tree, of class "phylo"
+#' @param local.tree: local community phylogenetic tree, of class "phylo"
+#' @param regional.traits: trait values for each species in regional community, vector or list
+#' @param local.traits: trait values for each species in local community, vector or list
+#'
+#' @return vector of output from ses.mpd and ses.mndt
+#' @export
+#'
+#' @examples: 
 CalcPhyDispStats <- function(regional.tree,
                              local.tree,
                              regional.traits,
                              local.traits){
-  
+ 
   if (class(regional.tree)!="phylo")
     stop("'regional.tree' is not a phylo object", call. = F)
   if (class(local.tree)!="phylo")
