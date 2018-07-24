@@ -220,8 +220,18 @@ SimCommunityAssembly <- function(sims, N, local,
     setTxtProgressBar(pb, i)
   }
 
-  output <- list(data.frame(params), summary.stats)
-  names(output) <- c("params", "summary.stats")
+  if (output.sum.stats == TRUE && output.phydisp.stats == TRUE) {
+    output <- list(data.frame(params), summary.stats, phydisp.stats)
+    names(output) <- c("params", "summary.stats", "phydisp.stats")
+  }
+  if (output.sum.stats == TRUE && output.phydisp.stats == FALSE) {
+    output <- list(data.frame(params), summary.stats)
+    names(output) <- c("params", "summary.stats")
+  if (output.sum.stats == FALSE && output.phydisp.stats == TRUE) {
+    output <- list(data.frame(params), phydisp.stats)
+    names(output) <- c("params", "phydisp.stats")
+  }
+  
   close(pb)
   return(output)
 }
