@@ -15,20 +15,21 @@ Description: This package is to make community assembly inferences and/or
 Depends:
     R (>= 3.3.2)
 Imports:
-    abc,
     ape,
     geiger,
     modes,
     nLTT,
     phyloTop,
     phytools,
-    randomForest,
+    picante,
     TreeSim
-License: 
-Encoding: 
+License:
+Encoding:
 LazyData: true
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    randomForest,
+    abc
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1

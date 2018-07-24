@@ -20,6 +20,8 @@ SimCommunityAssembly <- function(sims, N, local,
                                  traitsim,
                                  comsim,
                                  disable.bar = FALSE,
+                                 output.sum.stats = TRUE,
+                                 output.phydisp.stats = FALSE,
                                  lambda = c(0.05, 2.0),
                                  eps = c(0.2, 0.8),
                                  sig2 = c(1, 10),
@@ -59,38 +61,60 @@ SimCommunityAssembly <- function(sims, N, local,
                         "avg.Pa",     #11
                         "avg.rej")    #12
 
-  summary.stats <- matrix(NA, nrow = sims, 30)
-  colnames(summary.stats) <-   c("Mean.BL", 	#1
-                                 "Var.BL",		#2
-                                 "Mean.Tr",		#3
-                                 "Var.Tr",		#4
-                                 "Moran.I",		#5
-                                 "Age",			  #6
-                                 "Colless",		#7
-                                 "Sackin",		#8
-                                 "nLTT",			#9
-                                 "Msig",			#10
-                                 "Cvar",			#11
-                                 "Svar",			#12
-                                 "Shgt",			#13
-                                 "Dcdf",			#14
-                                 "Skw",			  #15
-                                 "Krts",			#16
-                                 "MnRegTr",		#17
-                                 "VrRegTr",		#18
-                                 "MnTrDif",		#19
-                                 "VrTrDif",		#20
-                                 "MnRegBl",		#21
-                                 "VarRegBl",	#22
-                                 "MnBlDif",		#23
-                                 "VarBlDif",	#24
-                                 "Amp1",			#25
-                                 "Amp2",			#26
-                                 "BiCoef",		#27
-                                 "BiRatio",		#28
-                                 "Mode1",		  #29
-                                 "Mode2")		  #30
-
+  if (output.sum.stats == TRUE) {
+    summary.stats <- matrix(NA, nrow = sims, 30)
+    colnames(summary.stats) <-   c("Mean.BL", 	#1
+                                   "Var.BL",		#2
+                                   "Mean.Tr",		#3
+                                   "Var.Tr",		#4
+                                   "Moran.I",		#5
+                                   "Age",			  #6
+                                   "Colless",		#7
+                                   "Sackin",		#8
+                                   "nLTT",			#9
+                                   "Msig",			#10
+                                   "Cvar",			#11
+                                   "Svar",			#12
+                                   "Shgt",			#13
+                                   "Dcdf",			#14
+                                   "Skw",			  #15
+                                   "Krts",			#16
+                                   "MnRegTr",		#17
+                                   "VrRegTr",		#18
+                                   "MnTrDif",		#19
+                                   "VrTrDif",		#20
+                                   "MnRegBl",		#21
+                                   "VarRegBl",	#22
+                                   "MnBlDif",		#23
+                                   "VarBlDif",	#24
+                                   "Amp1",			#25
+                                   "Amp2",			#26
+                                   "BiCoef",		#27
+                                   "BiRatio",		#28
+                                   "Mode1",		  #29
+                                   "Mode2")		  #30
+  }
+  
+  if (output.phydisp.stats == TRUE) {
+    phydisp.stats <- matrix(NA, nrow = sims, 16)
+    colnames(phydisp.stats) <-   c("ntaxa", 	        #1
+                                   "mpd.obs",		      #2
+                                   "mpd.rand.mean",	  #3
+                                   "mpd.rand.sd",		  #4
+                                   "mpd.obs.rank",	  #5
+                                   "mpd.obs.z",			  #6
+                                   "mpd.obs.p",		    #7
+                                   "runs",		        #8
+                                   "ntaxa", 	        #9
+                                   "mntd.obs",		    #10
+                                   "mntd.rand.mean",  #11		
+                                   "mntd.rand.sd",	  #12
+                                   "mntd.obs.rank",		#13
+                                   "mntd.obs.z",			#14
+                                   "mntd.obs.p",		  #15
+                                   "runs")		        #16
+  }
+  
   ##initiate progress bar
   if (disable.bar == FALSE){
   pb <- txtProgressBar(min = 0, max = sims, style = 3)
@@ -121,7 +145,7 @@ SimCommunityAssembly <- function(sims, N, local,
     if (length(local) > 1){
       n <- N.drawn * runif(1, local[1], local[2])
     }else{
-      if (is.integer(local)){
+      if (as.integer(local) != 0){
         n <- local
       }else{
         n <- N.drawn * local
@@ -184,8 +208,13 @@ SimCommunityAssembly <- function(sims, N, local,
     params[i, ] <- c(i, comsim, traitsim, N.drawn, length(local.traits), lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
 
     ##calculate all summary statistics
-    summary.stats[i, ] <- CalcSummaryStats(regional.tree, local.tree, regional.traits, local.traits)
-
+    if (output.sum.stats == TRUE){
+      summary.stats[i, ] <- CalcSummaryStats(regional.tree, local.tree, regional.traits, local.traits)
+    }
+    if (output.phydisp.stats == TRUE) {
+      phydisp.stats[i, ] <- CalcPhyDispStats(regional.tree, local.tree, regional.traits, local.traits)
+    }
+    
     Sys.sleep(.1)
     # update progress bar
     setTxtProgressBar(pb, i)
@@ -195,8 +224,10 @@ SimCommunityAssembly <- function(sims, N, local,
   names(output) <- c("params", "summary.stats")
   close(pb)
   return(output)
-
 }
+
+
+
 
 #' CalcSummaryStats
 #'
@@ -387,7 +418,37 @@ CalcSummaryStats <- function(regional.tree,
                     "Mode2")		  #30
 
   return(stats)
-
 }
 
 
+
+CalcPhyDispStats <- function(regional.tree,
+                             local.tree,
+                             regional.traits,
+                             local.traits){
+  
+  if (class(regional.tree)!="phylo")
+    stop("'regional.tree' is not a phylo object", call. = F)
+  if (class(local.tree)!="phylo")
+    stop("'regional.tree' is not a phylo object", call. = F)
+  if (length(regional.traits)!=length(regional.tree$tip.label))
+    stop("Number of regional traits does not match the number of tips on the regional tree", call. = F)
+  if (length(local.traits)!=length(local.tree$tip.label))
+    stop("Number of local traits does not match the number of tips on the local tree", call. = F)
+  
+  #Make presence absence matrix where the columns are each species and the row are each community, here we have only 1 community (1 row)
+  community.pa.matrix <- matrix(0, 1, length(regional.tree$tip.label))
+  colnames(community.pa.matrix) <- regional.tree$tip.label
+  #if the species are in the local community, make them a 1
+  community.pa.matrix[regional.tree$tip.label %in% local.tree$tip.label] <- 1
+  
+  #if you don't combine the matrix to make two rows, the function calculates each column as a community (small bug)
+  community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
+      
+  #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
+  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=500)[1,]
+  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=500)[1,]
+  
+  output <- unlist(c(ses.mpd[1:8], ses.mntd[1:8]))
+  return(output)
+}
