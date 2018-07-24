@@ -4,9 +4,10 @@
 \alias{SimCommunityAssembly}
 \title{SimCommunityAssembly}
 \usage{
-SimCommunityAssembly(sims, N, local, traitsim, comsim, lambda = c(0.05, 2),
-  eps = c(0.2, 0.8), sig2 = c(1, 10), alpha = c(0.01, 0.2), tau = c(5,
-  50))
+SimCommunityAssembly(sims, N, local, traitsim, comsim, disable.bar = FALSE,
+  output.sum.stats = TRUE, output.phydisp.stats = FALSE, lambda = c(0.05,
+  2), eps = c(0.2, 0.8), sig2 = c(1, 10), alpha = c(0.01, 0.2),
+  tau = c(5, 50))
 }
 \arguments{
 \item{sims:}{The number of simulations; sims}
