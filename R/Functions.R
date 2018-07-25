@@ -24,7 +24,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  output.phydisp.stats = FALSE,
                                  lambda = c(0.05, 2.0),
                                  eps = c(0.2, 0.8),
-                                 sig2 = c(1, 10),
+                                 sig2 = c(1, 5),
                                  alpha = c(0.01, 0.2),
                                  tau = c(5, 50)) {
 
@@ -127,20 +127,25 @@ SimCommunityAssembly <- function(sims, N, local,
       N.drawn <- runif(1, N[1], N[2])
     }else {N.drawn <- N}
     #draw lambda
-    if (length(lambda) > 1)
+    if (length(lambda) > 1){
       lambda.drawn <- runif(1, lambda[1], lambda[2])
+    }else {lambda.drawn <- lambda}
     #draw eps
-    if (length(eps) > 1)
+    if (length(eps) > 1){
       eps.drawn <- runif(1, eps[1], eps[2])
+    }else {eps.drawn <- eps}
     #draw sig2
-    if (length(sig2) > 1)
+    if (length(sig2) > 1){
       sig2.drawn <- runif(1, sig2[1], sig2[2])
+    } else {sig2.drawn <-  sig2}
     #draw alpha
-    if (length(alpha) > 1)
+    if (length(alpha) > 1) {
       alpha.drawn <- runif(1, alpha[1], alpha[2])
+    } else {alpha.drawn <- alpha}
     #draw tau
-    if (length(tau) > 1)
+    if (length(tau) > 1){
       tau.drawn <- runif(1, tau[1], tau[2])
+    } else {tau.drawn <- tau}
     #set local community size
     if (length(local) > 1){
       n <- N.drawn * runif(1, local[1], local[2])
@@ -464,6 +469,10 @@ CalcPhyDispStats <- function(regional.tree,
   #if you don't combine the matrix to make two rows, the function calculates each column as a community (small bug)
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
       
+  ##add this in
+  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  
   #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
   ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
   ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
