@@ -24,7 +24,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  output.phydisp.stats = FALSE,
                                  lambda = c(0.05, 2.0),
                                  eps = c(0.2, 0.8),
-                                 sig2 = c(1, 5),
+                                 sig2 = c(1, 10),
                                  alpha = c(0.01, 0.2),
                                  tau = c(5, 50)) {
 
@@ -220,9 +220,12 @@ SimCommunityAssembly <- function(sims, N, local,
       phydisp.stats[i, ] <- CalcPhyDispStats(regional.tree, local.tree, regional.traits, local.traits)
     }
     
-    Sys.sleep(.1)
-    # update progress bar
-    setTxtProgressBar(pb, i)
+    if (disable.bar == FALSE){
+      Sys.sleep(.1)
+      # update progress bar
+      setTxtProgressBar(pb, i)
+    }
+
   }
 
   if (output.sum.stats == TRUE && output.phydisp.stats == TRUE) {
@@ -238,7 +241,10 @@ SimCommunityAssembly <- function(sims, N, local,
     names(output) <- c("params", "phydisp.stats")
   }
   
-  close(pb)
+  if (disable.bar == FALSE){
+    close(pb)
+  }
+
   return(output)
 }
 
@@ -470,13 +476,13 @@ CalcPhyDispStats <- function(regional.tree,
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
       
   ##add this in
-  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  ses.mpd.trait <- ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd.trait <- ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
   
   #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
-  ses.mpd <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
+  ses.mpd.phy <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd.phy <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
   
-  output <- unlist(c(ses.mpd[1:8], ses.mntd[1:8]))
+  output <- unlist(c(ses.mpd.phy[1:8], ses.mntd.phy[1:8], ses.mpd.trait[1:8], ses.mntd.trait[1:8]))
   return(output)
 }
