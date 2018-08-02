@@ -96,8 +96,24 @@ SimCommunityAssembly <- function(sims, N, local,
   }
   
   if (output.phydisp.stats == TRUE) {
-    phydisp.stats <- matrix(NA, nrow = sims, 16)
+    phydisp.stats <- matrix(NA, nrow = sims, 32)
     colnames(phydisp.stats) <-   c("ntaxa", 	        #1
+                                   "mpd.obs",		      #2
+                                   "mpd.rand.mean",	  #3
+                                   "mpd.rand.sd",		  #4
+                                   "mpd.obs.rank",	  #5
+                                   "mpd.obs.z",			  #6
+                                   "mpd.obs.p",		    #7
+                                   "runs",		        #8
+                                   "ntaxa", 	        #9
+                                   "mntd.obs",		    #10
+                                   "mntd.rand.mean",  #11		
+                                   "mntd.rand.sd",	  #12
+                                   "mntd.obs.rank",		#13
+                                   "mntd.obs.z",			#14
+                                   "mntd.obs.p",		  #15
+                                   "runs",
+                                   "ntaxa", 	        #1
                                    "mpd.obs",		      #2
                                    "mpd.rand.mean",	  #3
                                    "mpd.rand.sd",		  #4
@@ -476,12 +492,12 @@ CalcPhyDispStats <- function(regional.tree,
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
       
   ##add this in
-  ses.mpd.trait <- ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd.trait <- ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  ses.mpd.trait <- picante::ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd.trait <- picante::ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
   
   #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
-  ses.mpd.phy <- ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd.phy <- ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
+  ses.mpd.phy <- picante::ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
+  ses.mntd.phy <- picante::ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
   
   output <- unlist(c(ses.mpd.phy[1:8], ses.mntd.phy[1:8], ses.mpd.trait[1:8], ses.mntd.trait[1:8]))
   return(output)
