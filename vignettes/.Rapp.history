@@ -1,0 +1,4316 @@
+library(ape)			#
+library(phytools)#
+library(geiger)	#
+library(psych)
+library(TreeSim)
+sims <- 100#
+sig2 <- 5.0
+com.size <- rep(0.53, sims)
+alpha <- 0.05
+plot(density(tau))
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)
+plot(density(tau))
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)
+n <- round(length(tree$tip.label) * com.size[i])
+n <- round(length(tree$tip.label) * com.size)
+Rejects <- list()
+Reg.Traits <- sim.char(tree, par=sig2, nsim=1, model="BM", root=0)[,,1]
+tree
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]
+traits <- Reg.Traits
+for (i in 1:sims){#
+		rej=0#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(reg.trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))
+for (i in 1:sims){#
+		rej=0#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(reg.trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+com.traits
+n
+n <- round(length(tree$tip.label) * com.size)
+n
+length(tree$tip.label)
+tree$tip.label
+n <- round(length(tree[[1]]$tip.label) * com.size)
+n
+length(tree[[1]]$tip.label)
+com.size
+com.size <- 0.53
+n <- round(length(tree[[1]]$tip.label) * com.size)
+n
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(reg.trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+for (i in 1:sims){#
+		rej=0#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+traits <- Reg.Traits
+for (i in 1:sims){#
+		rej=0#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+rej=0
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(trees[[i]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+Com.Trees[[i]] <- keep.tip(trees[[i]], names(com.traits))
+Com.Trees[[i]] <- keep.tip(trees[[1]], names(com.traits))
+(trees[[1]]
+trees[[1]]
+Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c(paste("mod",mod[i], sep=""), sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+plot(tau, Com.Varaince)
+plot(tau, Com.Variance)
+abline(h=var(Reg.Traits))
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Probs <- list()
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+tau
+Com.Variance
+#prior on strength of filtering/competition#
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Probs <- list()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+var(Reg.Traits)
+plot(tau, Probs)
+Probs
+Pj
+Probs
+Mn.Probs <- c()
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Probs)
+#prior on strength of filtering/competition#
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Probs)
+Probs
+plot(tau, Mn.Probs)
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)
+tau
+tau <- runif(sims, 10,110)
+plot(density(tau))
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 10,110)
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+plot(tau, Mn.Probs)
+#will need this keep.tip function#
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+#
+#number of total simulations#
+sims <- 500#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 10,110)#
+#
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			Probabilities <- rep(NA, length(com.traits))#
+			for (z in 1:length(com.traits)){#
+				Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			}#
+			Pj <- mean(Probabilities)#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+plot(tau, Mn.Probs)
+plot(tau, Com.Variance)
+abline(h=var(Reg.Traits))
+plot(tau, Mn.Probs)
+tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+plot(tau, Mn.Probs)
+Mn.Probs
+par(mfrow=c(2,1))
+plot(density(tau))
+plot(density(Mn.Probs))
+par(mfrow=c(1,2))
+plot(density(tau))
+plot(density(Mn.Probs))
+#will need this keep.tip function#
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+#
+#number of total simulations#
+sims <- 500#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 10,110)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+par(mfrow=c(1,2))#
+plot(density(tau))#
+plot(density(Mn.Probs))
+#number of total simulations#
+sims <- 500#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 10,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+par(mfrow=c(1,2))#
+plot(density(tau))#
+plot(density(Mn.Probs))
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+var(Reg.Traits)
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+plot(density(tau))
+plot(density(Mn.Probs))
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+var(Reg.Traits)
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,30)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- list()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				Rejects =c(Rejects, rej)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+Rejects
+rej
+Rejects <- c()
+#will need this keep.tip function#
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+#
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,30)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,2))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+sig2
+plot(tau, Rejects)
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+tree <- sim.bd.taxa(n=200, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- runif(sims, 5,30)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tau <- rnorm(sims, 20, sd= 10)
+tau
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- rnorm(sims, 20, sd= 10)#
+#
+#tau <- runif(sims, 5,30)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tau
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+tau <- rnorm(sims, 20, sd= 5)#
+#
+#tau <- runif(sims, 5,30)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		tr.ord <- sort(traits)#
+		if (runif(1,0,1) <= 0.5){#
+			Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		}else{#
+			Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		}#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+sims <- 300
+tree <- sim.bd.taxa(n=300, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,40)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,40)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 0.5 * (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tree <- sim.bd.taxa(n=500, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,40)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 0.5 * (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+var(Reg.Traits)
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))
+tau <- runif(sims, 5,100)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 0.5 * (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,150)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 0.5 * (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5,150)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 300#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,100)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tree <- sim.bd.taxa(n=250, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,100)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,80)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Probs <- c()#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+Probs
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 1000#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+rej
+#number of total simulations#
+sims <- 500#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+rej
+#number of total simulations#
+sims <- 500#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 100#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1,25)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+library(ape)			#
+library(phytools)#
+library(geiger)	#
+library(psych)#
+library(TreeSim)
+#will need this keep.tip function#
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+tree <- sim.bd.taxa(n=250, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)
+#number of total simulations#
+sims <- 200#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+#Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			Pj <- mean(Probabilities)#
+			#Pj <- 1 - (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			Pj <- mean(Probabilities)#
+			#Pj <- 1 - (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+plot(density(Mn.Probs))
+sims <- 200#
+sig2 <- 5.0#
+#
+com.size <- 0.53#
+alpha <- 0.05
+tau <- runif(sims, 1, 50)
+om.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+tau <- runif(sims, 5, 50)
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#will need this keep.tip function#
+keep.tip <- function(tree,tip) drop.tip(tree,setdiff(tree$tip.label,tip))#
+tree <- sim.bd.taxa(n=250, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)#
+#
+#number of total simulations#
+sims <- 200#
+sig2 <- 10.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+taur[6]
+tau[5]
+tau <- runif(sims, 5, 50)
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 200#
+sig2 <- 10.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 5, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 1-(exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+#number of total simulations#
+sims <- 200#
+sig2 <- 10.0#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 1-(exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+var(Reg.Traits)
+library(apTreeshape)
+sims <- 200#
+sig2 <- 8.0
+com.size <- 0.53#
+alpha <- 0.05
+tau <- runif(sims, 1, 50)
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 1-(exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+sig2 <- 5.9
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- 1-(exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+var(Reg.Traits)
+#number of total simulations#
+sims <- 200#
+sig2 <- 5.9#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+sims <- 200#
+sig2 <- 5.9#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))#
+		#Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tree <- sim.bd.taxa(n=250, numbsim=1, lambda=2.0, mu=0.5, frac=1, complete=FALSE)
+#number of total simulations#
+sims <- 200#
+sig2 <- 5.9#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))#
+		#Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}#
+par(mfrow=c(2,3))#
+plot(tau, Com.Variance)#
+abline(h=var(Reg.Traits))#
+#
+plot(tau, Mn.Probs)#
+#
+plot(density(tau))#
+plot(density(Mn.Probs))#
+#
+plot(tau, Rejects)
+tau
+Mn.Probs
+plot(tau, Mn.Probs)
+Mn.Probs
+Mn.Probs <- c()
+sims
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- drop.tip(regional.tree,setdiff(regional.tree$tip.label, names(local.traits)))#
+		#Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+sims <- 200#
+sig2 <- 5.9#
+#
+com.size <- 0.53#
+alpha <- 0.05#
+#
+#prior on strength of filtering/competition#
+#tau <- rnorm(sims, 20, sd= 5)#
+#
+tau <- runif(sims, 1, 50)#
+#
+#tau <- rlnorm(sims, meanlog=3.5, sd=.5)#
+#plot(density(tau))#
+#
+##Global Lists that keep track of parameters, variable, trees, traits#
+Com.Params <- matrix(NA, sims, 7) #
+colnames(Com.Params) <- c("Model", "sig^2", "com.size", "n", "tau", "alpha", "rej")#
+#
+Reg.Traits <- list()  #to be filled by 'reg.traits'#
+Com.Trees <- list()	  #to be filled by 'com.tree'#
+Com.Traits <- list()  #to be filled by 'com.traits'#
+Com.Variance <- c()#
+Com.Mean <- c()#
+#
+n <- round(length(tree[[1]]$tip.label) * com.size)#
+Rejects <- c()#
+Mn.Probs <- c()#
+##BM#
+Reg.Traits <- sim.char(tree[[1]], par=sig2, nsim=1, model="BM", root=0)[,,1]#
+#
+##OU#
+Reg.Traits <- fastBM(tree[[1]], a=0, theta=0, alpha=alpha, sig2=sig2, internal=FALSE)#
+traits <- Reg.Traits#
+#
+for (i in 1:sims){#
+		rej=0#
+		traits <- Reg.Traits#
+		## figure out where starting species is in phenotypic space#
+		#tr.ord <- sort(traits)#
+		#if (runif(1,0,1) <= 0.5){#
+		#	Xi <- sample(tr.ord[1:as.integer(length(traits)/3)],1)#
+		#}else{#
+		#	Xi <- sample(tr.ord[(length(traits)-as.integer(length(traits)/3)):length(traits)],1)#
+		#}#
+		Xi <- sample(traits,1)#
+		com.traits <- Xi#
+		Probs <- c()#
+		traits <- traits[!traits==Xi]#
+		while (length(com.traits) < n) {#
+			Xj <- sample(traits,1)#
+			#Probabilities <- rep(NA, length(com.traits))#
+			#for (z in 1:length(com.traits)){#
+			#	Probabilities[z] <- (exp(-((com.traits[z]-Xj)^2)/tau[i]))#
+			#}#
+			#Pj <- mean(Probabilities)#
+			Pj <- (exp(-((mean(com.traits)-Xj)^2)/tau[i]))#
+			if (Pj > runif(1,0,1)) {#
+				com.traits <- c(com.traits, Xj)#
+				traits <- traits[!traits==Xj]#
+				Probs <- c(Probs, Pj)#
+			}else{#
+				rej = rej + 1#
+				Probs <- c(Probs, Pj)#
+			}#
+		}#
+		Mn.Probs <- c(Mn.Probs, mean(Probs))#
+		Rejects <- c(Rejects, rej)#
+		print(i)#
+		Com.Trees[[i]] <- drop.tip(tree[[1]],setdiff(tree[[1]]$tip.label, names(com.traits)))#
+		#Com.Trees[[i]] <- keep.tip(tree[[1]], names(com.traits))#
+		Com.Params[i,] <- c("mod", sig2[i], com.size[i], n, tau[i], alpha[i], rej)#
+		Com.Traits[[i]] <- com.traits	#
+		Com.Variance <- c(Com.Variance, var(com.traits))#
+		Com.Mean <- c(Com.Mean, mean(com.traits))#
+}
+ComTrees[[10]]
+Com.Trees
+Com.Trees[[10]]
+length(Com.Traits[[10]])
+Com.Traits[[10]]
+Com.Traits[[10]]$T075
+Com.Traits[[10]]$t075
+Com.Traits[[10]]$t75
+Com.Traits[[10]]$
+]
+Com.Traits[[10]]
+names(Com.Traits)
+names(Com.Traits[[10]])
+Com.Trees
+names(Com.Traits[[10]])
+Com.Trees[[10]]
+names(Com.Traits[[10]])=="t50"
+names(Com.Traits[[10]])=="t200"
+require("CAMI")#
+require("randomForest")#
+require("abc")
+setwd("/Users/Megan/Documents/Github/CAMI/vignettes")
+sample.sizes <- c(100,200,300,400,500,600,700,800,900)
+sims <- 200
+Model.Index <- rep(c("BMneut", "BMfilt", "BMcomp", "OUneut", "OUfilt", "OUcomp"), each = sims)
+BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")
+i=1
+BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")
+i=1
+reg.com.size <- c(sample.sizes[i], sample.sizes[i]+100)
+BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")
+Ref.Table <- list()
+BM.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "filtering")
+i
+Ref.Table[i] <- c(BM.neutral, BM.filtering)
+Ref.Table[[i]] <- c(BM.neutral, BM.filtering)
+Ref.Table
+Ref.Table[[i]1:2] <- c(BM.neutral, BM.filtering)
+Ref.Table[[i]][1:2] <- c(BM.neutral, BM.filtering)
+Ref.Table[[i]][1:2]
+Ref.Table[[i]][1:4] <- c(BM.neutral, BM.filtering)
+Ref.Table[[i]][1:4]
+Ref.Table[[i]] <- c(BM.neutral, BM.filtering)
+Ref.Table[[i]] <- data.frame(BM.neutral, BM.filtering)
+Ref.Table
+Ref.Table[[i]] <- list(BM.neutral, BM.filtering)
+Ref.Table
+sample.sizes <- c(100,200,300,400,500,600,700,800,900)#
+sims <- 2#
+SimOutput <- list()
+for (i in 1:length(sample.sizes)) {#
+  reg.com.size <- c(sample.sizes[i], sample.sizes[i]+100)#
+  #BM models#
+  BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")#
+  BM.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "filtering")#
+  BM.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "competition")#
+  #OU models#
+  OU.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "neutral")#
+  OU.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "filtering")#
+  OU.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "competition")#
+  SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)#
+  print(paste("completed simulations of sample size", sample.sizes[i]))#
+}
+sample.sizes <- c(100,200,300,400,500,600,700,800,900)#
+sims <- 200#
+SimOutput <- list()#
+#
+for (i in 1:length(sample.sizes)) {#
+  reg.com.size <- c(sample.sizes[i], sample.sizes[i]+100)#
+  #BM models#
+  BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")#
+  BM.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "filtering")#
+  BM.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "competition")#
+  #OU models#
+  OU.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "neutral")#
+  OU.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "filtering")#
+  OU.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "competition")#
+  SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)#
+  print(paste("completed simulations of sample size", sample.sizes[i]))#
+}
+SimOuput
+SimOutput
+i
+print(paste("completed simulations of sample size", sample.sizes[i]))
+for (i in 3:length(sample.sizes)) {#
+  reg.com.size <- c(sample.sizes[i], sample.sizes[i]+100)#
+  #BM models#
+  BM.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "neutral")#
+  BM.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "filtering")#
+  BM.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "BM", comsim = "competition")#
+  #OU models#
+  OU.neutral <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "neutral")#
+  OU.filtering <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "filtering")#
+  OU.competition <- SimCommunityAssembly(sims = sims, N = reg.com.size, local = 0.5, traitsim = "OU", comsim = "competition")#
+  SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)#
+  print(paste("completed simulations of sample size", sample.sizes[i]))#
+}
+getwd()
+save(SimOutput, file="SimOutput.Rdata")
+load("/Users/Megan/Documents/GitHub/CAMI/vignettes/SimOutput.Rdata")
+head(SimOutput)
+load("/Users/Megan/Documents/GitHub/CAMI/vignettes/SimOutput.Rdata")
+SimOutput[[1]][[1]]$params
+head(SimOutput[[1]][[1]]$params)
+nrow(SimOutput[[1]][[1]]$params)
+nrow(SimOutput[[1]][[3]]$params)
+SimOutput[[1]][[3]]$params[,12]
+SimOutput[[1]][[2]]$params[,12]
+SimOutput[[1]][[2]]$params[,11]

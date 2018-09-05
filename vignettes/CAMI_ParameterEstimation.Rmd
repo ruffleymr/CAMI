@@ -1,0 +1,304 @@
+---
+title: "CAMI_ParameterEstimate"
+author: "MRuffley"
+date: "7/24/2018"
+output: html_document
+---
+### Understanding and Estimating the Tau parameter
+
+#### Tau, Sig2, and average PA
+The paramter we are interested in estimating using ABC is the tau parameter, or the strenghth of the ecological process that is restricting the phenotypic variation in the community. This parameter is confounded with the rate of character change because the strength of the process is affected by the variation in the trait distribution, and therefore the parameter is better estimated when we have some information about sig2. 
+
+Before we estimate the tau parameter, we can numerically explore how tau, sig2, and the probability of acceptance for species into the local community (PA) are affected by one another.
+
+We can show that tau is directly related to PA by ploting the relationship between the two values from many communtiy assembly simulations. For this we will hold all of the parameters the same except for the tau parameter.
+
+```{r message=FALSE, results='hide'}
+require(CAMI)
+
+#This line will simulate 100 datasets, with all parameters held constant except for the tau parameter that will be drawn from a uniform prior between 5 and 50
+BM.filtering <- SimCommunityAssembly(sims = 100, N = 100, local = 0.5, traitsim = "BM", comsim = "filtering",
+                                     lambda = 1.0, eps = 0.5, sig2 = 5.0, tau = c(5, 50))
+
+#In the params matrix, we can plot the valies of tau with the average probability of acceptance into the local community
+plot(as.numeric(paste(BM.filtering$params$tau)), as.numeric(paste(BM.filtering$params$avg.Pa)), 
+     ylim=c(0,1), xlim=c(5,50), pch=19,ylab="Avg. Probability of Acceptance", xlab="Tau")
+```
+
+Remeber, the average PA is literally the average of all probabilities of acceptance calculated for a single community assembly simulations. This means the PAs calculated for species that are never accepted into the communtiy are still included. The rate of character change (sig2) is 5.0, and we can see the average probabilities of acceptance range from ~0.02 to 0.7 (competition; ~0.15 - 0.83), where low tau values translate to stronger filtering effects and low probabilities of acceptance, and high tau values translate to weaker filtering effects and higher probabilities of species acceptance. 
+
+When we look at the relationship between tau and avg PA for data that are simulated under a lower rate of character change, 1.0, we see the range of PAs increase.
+
+```{r message=FALSE, results='hide'}
+#This line will simulate 100 datasets, with all parameters held constant except for the tau parameter that will be drawn from a uniform prior between 0 and 1
+BM.filtering <- SimCommunityAssembly(sims = 100, N = 100, local = 0.5, traitsim = "BM", comsim = "filtering",
+                                     lambda = 1.0, eps = 0.5, sig2 = 1.0, tau = c(5, 50))
+
+#In the params matrix, we can plot the valies of tau with the average probability of acceptance into the local community
+plot(as.numeric(paste(BM.filtering$params$tau)), as.numeric(paste(BM.filtering$params$avg.Pa)), 
+     ylim=c(0,1), xlim=c(5,50), pch=19, ylab="Avg. Probability of Acceptance", xlab="Tau")
+```
+
+We see the range of PA has increased to between ~0.2 to 0.95 (competition; ~0.02 - 0.52). 
+
+Likewise, if we increase the rate of character change to 10.0, the range of PAs gets smaller, to between ~0.001 and 0.6 (competition; ~0.28 - 0.86)
+
+```{r message=FALSE, results='hide'}
+#This line will simulate 100 datasets, with all parameters held constant except for the tau parameter that will be drawn from a uniform prior between 0 and 1
+BM.filtering <- SimCommunityAssembly(sims = 100, N = 100, local = 0.5, traitsim = "BM", comsim = "filtering",
+                                     lambda = 1.0, eps = 0.5, sig2 = 10.0, tau = c(5, 50))
+
+#In the params matrix, we can plot the valies of tau with the average probability of acceptance into the local community
+plot(as.numeric(paste(BM.filtering$params$tau)), as.numeric(paste(BM.filtering$params$avg.Pa)), 
+     ylim=c(0,1), xlim=c(5,50), pch=19, ylab="Avg. Probability of Acceptance", xlab="Tau")
+```
+
+You can also explore the relationship between these two parameter and avg. PA under competition models. To do this, use the same code as above, only change the 'comsim' parameter in each simulation line from "filtering" to "competition". The competition PA ranges are noted next to the filtering PA ranges. Notice that under competition models, this effect is reversed in that smaller values of tau translate to weaker competition, and therefore higher avg. PAs, and larger tau values translate to stronger competition, and therefore smaller avg. PAs. 
+
+Additionally the increase in the rate of character change, makes the competition effects less severe. And lower rates of character change make competition effects much more severe, unlike the filtering models. 
+
+#### Estimate Tau
+
+Due to the relationship between sig2 and tau, when a large prior range is implemented for sig2 tau can be hard to estimate because, as shown above, different combinations of sig2 and tau can lead to the same effect of filtering/competition. In order to estimate tau as well as possible, one has two options and both involve using an estimate of sig2. After one has an estimate of sig2 (see side note), one can either restrict the prior range of sig2 to include this estimate, or fix the sig2 estimate for all of the simulations. We will perform parameter estimation using both of these approaches, and will ultamately show that it does not effect the estimate of tau.
+
+First though, we will simulate a psuedo dataset to serve as our observed/emprical data. Typically, we would first perform model selection to determine the model of community assembly and then simulate the reference dataset for parameter estimation under that model, but here, we will just assume that we have already completed model selection. We can then simulate under the known (or selected) model of community assembly. 
+
+Again, if you're performing parameter estimation, it is assumed that you have already completed model selection. It is possible to perform model selection and parameter estimation at the same time. However, if you choose to do this, I recommend having at least 10000 simulations per model. 
+
+```{r message=FALSE, results='hide'}
+#simulate "observed" data, use a fixed value of tau.
+pseudo.obs <- SimCommunityAssembly(sims = 1, N = 500, local = 0.5, traitsim = "BM", comsim = "filtering", 
+                                   sig2 = 3, tau = 7)
+
+# This bit of code will take about 2 hours to simulate. 
+#ref.dataset <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "filtering", 
+#                                    sig2 = c(1,5), tau = c(5, 50))
+
+#You can also load the dataset for filtering or competition, with either a prior range on sig2 or sig2 fixed. 
+load(file="ref.dataset_filt.sig2prior2018-07-27.Rdata")
+
+#For parameter estimation, we will also only use the summary statistic that are important in model classification
+pseudo.obs$summary.stats <-  pseudo.obs$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+ref.dataset$summary.stats <- ref.dataset$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+```
+
+With the data simulated we can perform parameter estimation using the 'abc' R package and function. After, we can plot the posterior of sig2 and tau.
+
+```{r message=FALSE}
+require(abc)
+abc.object <- abc(target = pseudo.obs$summary.stats, param = ref.dataset$params, sumstat = ref.dataset$summary.stats, tol = 0.01, method="rejection")
+
+#look at the object
+abc.object
+```
+
+You can also use the *attributes()* function to see what information is in this object. The 'unadj.values' are the parameters of the simulations accepted into the posterior. We can also see how they compare to the true values, i.e. the parameters of the observed dataset.
+
+```{r messsage=FALSE}
+#make a dataframe of prior and posterior information of sig2
+sig2.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(ref.dataset$params)), rep("posterior", each= nrow(abc.object$unadj.values)))),
+                      sig2 = c(as.numeric(paste(ref.dataset$params[,8])), as.numeric(paste( abc.object$unadj.values[,8]))))
+         
+require(ggplot2)                           
+ggplot(sig2.pp, aes(x=sig2, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(as.numeric(paste( abc.object$unadj.values[,8])))), color="black", linetype="dashed", lwd=2) +
+  geom_vline(aes(xintercept=as.numeric(paste(pseudo.obs$params[,8]))), color="darkred", lwd=.8)
+
+#do the same for tau
+tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(ref.dataset$params)), rep("posterior", each= nrow(abc.object$unadj.values)))),
+                      tau = c(as.numeric(paste(ref.dataset$params[,10])), as.numeric(paste( abc.object$unadj.values[,10]))))
+                                    
+ggplot(tau.pp, aes(x=tau, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(as.numeric(paste( abc.object$unadj.values[,10])))), color="black", linetype="dashed", lwd=2) +
+  geom_vline(aes(xintercept=as.numeric(paste(pseudo.obs$params[,10]))), color="darkred", lwd=.8)
+
+#Although PA is not a parameter, we can still investigate this property of the simulations because it still informs as to the amount of rejection going on in the assembly process
+avgPA.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(ref.dataset$params)), rep("posterior", each= nrow(abc.object$unadj.values)))),
+                      avgPA = c(as.numeric(paste(ref.dataset$params[,11])), as.numeric(paste( abc.object$unadj.values[,11]))))
+                                    
+ggplot(avgPA.pp, aes(x=avgPA, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(as.numeric(paste( abc.object$unadj.values[,11])))), color="black", linetype="dashed", lwd=2) +
+  geom_vline(aes(xintercept=as.numeric(paste(pseudo.obs$params[,11]))), color="darkred", lwd=.8)
+
+```
+
+In all plots, the red line indicates the true value of the parameter from the simulated "observed" data, while the black dashed line represents the median of the posterior probabilty. From the estimates of tau and sig2, and the distribution of avg.PAs from the simulated data, we can get a pretty good idea of the level of filtering. 
+
+We can also simulate data under a fixed value of sig2, rather than a prior range.
+
+```{r message=FALSE, results='hide'}
+#This will also take ~2 hours to simulate
+#ref.dataset <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "filtering", 
+#                                    sig2 = 3, tau = c(5, 50))
+
+ref.dataset.C.s <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "competition", 
+                                  sig2 = c(1,5), tau = c(5, 50))
+
+ref.dataset <- ref.dataset.C.s
+
+ref.dataset.C.b <- SimCommunityAssembly(sims = 10000, N = 500, local = 0.5, traitsim = "BM", comsim = "competition", 
+                                 sig2 = c(1,5), tau = c(5, 50))
+
+save(ref.dataset.C.s, file="RefDataset.comp.sig2prior.small.Rdata")
+save(ref.dataset.C.b, file="RefDataset.comp.sig2prior.big.Rdata")
+
+#You can also load the dataset for filtering or competition, with either a prior range on sig2 or sig2 fixed. 
+load(file="ref.dataset_filt.sig2fixed2018-07-27.Rdata")
+
+#pull out important summary statistics
+ref.dataset$summary.stats <- ref.dataset$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+
+pseudo.obs <- SimCommunityAssembly(sims = 1, N = 500, local = 0.5, traitsim = "BM", comsim = "filtering", 
+                                   sig2 = 3, tau = 45)
+
+pseudo.obs$summary.stats <-  pseudo.obs$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+
+#perform abc param estimation
+abc.object <- abc(target = pseudo.obs$summary.stats, param = ref.dataset$params, sumstat = ref.dataset$summary.stats, tol = 0.01, method="rejection")
+```
+
+And plot the estimates, though here will we not look at sig2 because the parameter has been fixed for all simulations
+
+```{r}
+#only plot the posterior of tau because sig2 will be all the same
+tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(ref.dataset$params)), rep("posterior", each= nrow(abc.object$unadj.values)))),
+                      tau = c(as.numeric(paste(ref.dataset$params[,10])), as.numeric(paste( abc.object$unadj.values[,10]))))
+                                    
+ggplot(tau.pp, aes(x=tau, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=as.numeric(paste(pseudo.obs$params[,10]))), color="darkred", lwd=.8)
+
+#Although PA is not a parameter, we can still investigate this property of the simulations because it still informs as to the amount of rejection going on in the assembly process
+avgPA.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(ref.dataset$params)), rep("posterior", each= nrow(abc.object$unadj.values)))),
+                      avgPA = c(as.numeric(paste(ref.dataset$params[,11])), as.numeric(paste( abc.object$unadj.values[,11]))))
+                                    
+ggplot(avgPA.pp, aes(x=avgPA, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(as.numeric(paste( abc.object$unadj.values[,11])))), color="black", linetype="dashed", lwd=2) +
+  geom_vline(aes(xintercept=as.numeric(paste(pseudo.obs$params[,11]))), color="darkred", lwd=.8)
+```
+
+You can also estimate the tau parameter for competition models, and community assembly models under OU models of trait evolution. For competition models, you can load reference datasets with a prior on sig2 (file="ref.dataset_comp.sig2fixed2018-07-27.Rdata") or a fixed value of sig2 file="ref.dataset_comp.sig2fixed2018-07-27.Rdata"). These datasets, like the filtering reference datasets, have 10000 simulations.
+
+#### Param Estimate Power
+
+Now we will measure how accurate our estimates of tau are when tau is varied. In other words, are we able to measure tau well only when filtering/competition effects are strong? Or can we aslo detect these effects when they are much weaker. 
+
+We will do what we have done above in terms of performing abc for parameter estimation, only we will specifically perform parameter estimation 100 times per value of tau, for a range of tau from 5 to 50 increasing in increments of 5. For each parameter estimation we will measure the difference between the median estimate of the posterior and the true value of tau. 
+
+```{r message=FALSE, results='hide'}
+#load the reference dataset you want to use
+load(file="ref.dataset_filt.sig2prior2018-07-27.Rdata")
+ref.dataset$summary.stats <- ref.dataset$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+
+#tau values to estimate and number of estimation trials 
+tau.trials <- seq(5, 50, by = 5)
+trial.reps <- 100
+param.measurse <- matrix(NA, trial.reps, length(tau.trials))
+
+for (k in 1:length(tau.trials)){
+  for (i in 1:trial.reps){
+    pseudo.obs <- SimCommunityAssembly(sims = 1, N = 200, local = 0.5, traitsim = "BM", comsim = "competition", 
+                                   sig2 = 3, tau = tau.trials[k])
+    
+    pseudo.obs$summary.stats <-  pseudo.obs$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+    abc.object <- abc(target = pseudo.obs$summary.stats, param = ref.dataset$params, sumstat = ref.dataset$summary.stats, tol = 0.01, method="rejection",
+                      disable.bar=TRUE)
+    
+    param.measurse[i,k] <- median(as.numeric(paste( abc.object$unadj.values[,10])))
+    
+    if (i %% 10 == 0){
+      print(paste("finished sim", i))
+    }
+  }
+  print(paste("Done with tau of", tau.trials[k]))
+}
+```
+
+We can plot our estimates of tau with their corresponding true value. 
+
+```{r}
+filt.sig2prior.Param.Est <- data.frame(true.taus = factor(rep(tau.trials, each=trial.reps)), 
+           tau.mpp.est = as.vector(param.measurse))
+
+boxplot(tau.mpp.est ~ true.taus, data=filt.sig2prior.Param.Est, pch=19, xlab="tau", ylab="Tau MPP Estimate",
+        col=rgb(.3, .8, .2, .6), border = rgb(.4, .4, .4, 1), ylim=c(0,50), bty="u")
+points(x=seq(0,11), y=c(0,tau.trials,55), type="l", lty=4, col= rgb(.7, .1, .9, 1), lwd=2)
+```
+
+You can also investigate the relationship between tau estimates and true tau values for competition models. To do this, simulate or load the competition refrence dataset.
+
+Finally, we will simulate a reference dataset under a larger sample size and compare estimates of tau with sample size. 
+
+```{r message=FALSE, results='hide'}
+#run data or load below
+ref.dataset <- SimCommunityAssembly(sims = 10000, N = 500, local = 0.5, traitsim = "BM", comsim = "filtering", 
+                                    sig2 = 3, tau = c(5, 50))
+
+#save your own simulations, or load completed
+#save(ref.dataset, file="ref.dataset_filt.sig2priorLrg.Rdata")
+
+ref.dataset <- ref.dataset.C.b
+
+load(file="ref.dataset_filt.sig2priorLrg.Rdata")
+ref.dataset$summary.stats <- ref.dataset$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+
+#tau values to estimate and number of estimation trials 
+param.measurse2 <- matrix(NA, trial.reps, length(tau.trials))
+
+for (k in 1:length(tau.trials)){
+  for (i in 1:trial.reps){
+    pseudo.obs <- SimCommunityAssembly(sims = 1, N = 500, local = 0.5, traitsim = "BM", comsim = "competition", 
+                                   sig2 = 3, tau = tau.trials[k])
+    
+    pseudo.obs$summary.stats <-  pseudo.obs$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)]
+    abc.object <- abc(target = pseudo.obs$summary.stats, param = ref.dataset$params, sumstat = ref.dataset$summary.stats, tol = 0.01, method="rejection",
+                      disable.bar=TRUE)
+    
+    param.measurse2[i,k] <- median(as.numeric(paste( abc.object$unadj.values[,10])))
+    
+    if (i %% 10 == 0){
+      print(paste("finished sim", i))
+    }
+  }
+  print(paste("Done with tau of", tau.trials[k]))
+}
+
+
+filt.sig2prior.Param.Est.Lrg <- data.frame(true.taus = factor(rep(tau.trials, each=trial.reps)), 
+           tau.mpp.est = as.vector(param.measurse2))
+
+boxplot(tau.mpp.est ~ true.taus, data=filt.sig2prior.Param.Est.Lrg, pch=19, xlab="tau", ylab="Tau MPP Estimate",
+        col=rgb(.3, .8, .2, .6), border = rgb(.4, .4, .4, 1), ylim=c(0,50), bty="u")
+points(x=seq(0,11), y=c(0,tau.trials,55), type="l", lty=4, col= rgb(.7, .1, .9, 1), lwd=2)
+```
+We can plot the results together, in one plot.
+
+```{r}
+filt.sig2prior.Param.Est.Combined <- data.frame(true.taus = factor(c(rep(tau.trials, each=trial.reps), rep(tau.trials, each=trial.reps))), 
+           tau.mpp.est = c(as.vector(param.measurse2), as.vector(param.measurse)), dataset= rep(c("500", "200"), each=length(param.measurse2)))
+
+save(filt.sig2prior.Param.Est.Combined, file="filt.sig2prior.Param.Est.Combined.Rdata")
+load(file="filt.sig2prior.Param.Est.Combined.Rdata")
+
+ggplot(data = filt.sig2prior.Param.Est.Combined, aes(x=true.taus, y=tau.mpp.est)) + geom_boxplot(aes(fill=dataset)) + geom_abline(slope=5, intercept=0, linetype="dotted", size=1.3) +
+  scale_fill_manual(values=c("#999999", "#FF9999"))+
+  xlab("True Tau") + ylab("Tau Estimates") 
+```
+
+####Side Note on Estimating Sig2
+
+If one has the regional and local community phylogeny, and the regional and local traits (which they must have to do this analysis), one can estimate the model of trait evolution and sig2 using the *fitContinuous* function in **geiger**. Having a more precise estimate of sig2 will improve the posterior probabilty distribution of tau.

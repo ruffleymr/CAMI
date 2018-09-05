@@ -1,0 +1,438 @@
+---
+title: "CAMI power analysis "
+author: "Megan Ruffley"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CAMI tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+## Community Assembly Model Inference
+
+Load/install packages needed for this script.
+
+```{r message=FALSE}
+require(CAMI)
+require(randomForest)
+require(abc)
+```
+
+### Simulation of Data
+
+We will simulate the community assembly data using the function _SimCommunityAssembly_. The function first simulates a regional community phylogeny and traits on that phylogeny. Then, using that information, the local community is assembled by either neutral, habitat filtering, or compeitive exclusion processes. 
+
+For the power analysis, there are two elements we want to check out. The first being whether or not randomForest and ABC are able to classify the simulated community data as genertated by correct model. The other is whether or not the amount of data contribute to the power of the analysis, i.e. does more data ensure that the correct model is selected more often. We will address both of these questions. 
+
+```{r message=FALSE, results='hide'}
+#This script ran with 1000 sims per 18 sample sizes ran for approximately 20 hours
+sample.sizes <- c(100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950)
+sims <- 1000
+SimOutput <- list()
+
+for (i in 10:length(sample.sizes)) {
+  
+  #BM models
+  BM.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "neutral")
+  BM.filtering <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "filtering")
+  BM.competition <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "competition")
+  
+  #OU models
+  OU.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "neutral")
+  OU.filtering <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "filtering")
+  OU.competition <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "competition")
+  
+  SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)
+  print(paste("completed simulations of sample size", sample.sizes[i]))
+  
+}
+
+#save output object, which is a list of lists
+date <- Sys.Date()
+save(SimOutput, file=paste("SimOutput",date,".Rdata", sep=""))
+#This dataset was save on August 1, 2018
+```
+
+### Random Forest
+
+We will use the simulated data from each of the datasets to build several randomForest classifiers. As each classifier is built, the out-of-bag (OOB) error rates will be estimated simultaneously. The error rate will inform as to how well randomForest can classify these data. We will also look at these error rates with respect to the sample size of the communities to understand whether the error rates decrease with an increase in sample size of communities. 
+
+```{r}
+#Load dataset (recommended) if not interested in re-simualting 
+load(file="SimOutput2018-08-01.Rdata") 
+
+#create an empty vector to store error rates of each classifier
+RF.Objects <- list()
+RF.ErrRates <- c()
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- c()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  #This is the response variable in the random forest analysis
+  Model.Index <- rep(c("BM.neut", "BM.filt", "BM.comp", "OU.neut", "OU.filt", "OU.comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]]))
+  Ref.Table <- na.omit(data.frame(all.sum.stats, Model.Index))
+  
+  #set number of trees here
+  ntree=1000
+  
+  #build random forest classifier and record the error rate
+	RF.Objects[[i]] <- randomForest(Model.Index ~., data=Ref.Table, ntree=ntree, importance=T)
+	RF.ErrRates <- c(RF.ErrRates, RF.Objects[[i]]$err.rate[ntree,1]*100)
+	
+	print(paste("finished RF classifier for sample size", sample.sizes[i], "with error rate", RF.ErrRates[i]))
+}
+```
+
+Now we can check whether the error rates for random forest decrease with increasing sample size. Let's plot sample size with OOB error rate and see. 
+
+```{r}
+plot(sample.sizes, RF.ErrRates, type = "b", lty = 1, lwd = 2, ylab= "OOB Error Rates", xlab = "Sample Size",
+     ylim = c(0,40), bty="l", pch=19)
+```
+
+We can see in the plot the error rates are decreasing with increasing sample size, which is what we expect to happen. However, the OOB error rates are not as low as we would like to see them.
+
+We can view a RF classifier and see if there is any information in the confusion matrix. This matrix conveys more information than just the OOB rates because not only does it provide the number of simulations classified as the correct model, but it also shows where the incorrectly classified models are being classified. 
+
+We can look at the first RF object that has a very low error rate. This RF classifer was constructed with regional communities that had 100 - 150 species.
+```{r}
+RF.Objects[[1]]
+```
+
+We can also look at the RF classifiers that used larger datasets and see what the confusion matrix tells us. 
+
+```{r}
+RF.Objects[[18]]
+```
+
+This RF classifer was constructed with regional communities that had 950 - 999 species, and we can see that models that are  incorrectly classified are most commonly classified as the wrong model of trait evolution, while the communtiy assembly model is still correct. This could be because depending on the rate of trait evolution, distinguishing between BM and OU, after the assembly process has been completed, may be quite difficult. 
+
+For the last inspection of power for Random Forest we are going to try to just classify models by their community assmebly process only, and not try to classify the model of trait evolution used for simulation. Now, rather than comparing six models, we will only be comparing three. Then we can inspect, again, whether error rates decrease with increasing sample size. 
+
+```{r}
+#create an empty vector to store error rates of each classifier
+RF.Objects_2 <- list()
+RF.ErrRates_2 <- c()
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- c()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  #This is the response variable in the random forest analysis
+  
+  #I just removed the "BM" and "OU" marks before each of these categorical variables
+  Model.Index <- rep(rep(c("neut", "filt", "comp", "neut", "filt", "comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  Ref.Table <- na.omit(data.frame(all.sum.stats, Model.Index))
+  
+  #set number of trees here
+  ntree=1000
+  
+  #build random forest classifier and record the error rate
+	RF.Objects_2[[i]] <- randomForest(Model.Index ~., data=Ref.Table, ntree=ntree, importance=T)
+	RF.ErrRates_2 <- c(RF.ErrRates_2, RF.Objects_2[[i]]$err.rate[ntree,1]*100)
+	
+	print(paste("finished RF classifier for sample size", sample.sizes[i], "with error rate", RF.ErrRates_2[i]))
+}
+```
+
+We can compare the error rates between the two analyses. The error rates are much lower when we are only distinguishing between the three community assembly models. When we try to distinguish between community assembly model AND the model of trait evolution, the error rates are much higher.
+
+```{r}
+plot(sample.sizes, RF.ErrRates, type = "b", lty = 1, pch=19, lwd = 2, ylab= "OOB Error Rates (%)", xlab = "Sample Size",
+     ylim = c(0,40), bty="l")
+points(sample.sizes, RF.ErrRates_2, type = "b", pch=15, lty = 3, lwd = 2)
+legend("topright", legend = c("RF.T+C", "RF.C"), lty = c(1,3), pch = c(19,15), bty="n", lwd = c(3,3), cex = 1)
+```
+
+### Approximate Bayesian Computation
+
+Before we can perform a power analysis using ABC, we need to determine which summary statistics to use. RandomForest is able to handle all 30 of the statistucs, but ABC suffers more severaly from the curse of dimensionality, and will not perform well with too many summary statistics. We can look at the variable importance plots from our RF objects (one with low error rates) and determine which summary statistics are most useful in those classifications. 
+
+```{r}
+varImpPlot(RF.Objects_2[[18]])
+```
+
+We will use the top 10 most important summary statistics for our ABC analysis.
+
+##### Model Selection
+
+We will use the same simulated data as used in the RF power analysis to perform cross validation simulations using ABC. For this, we will take the 500 simulations for each model, for each sample size, and perform ABC on each of those datasets to measure how often ABC detremines the correct model. The "abc" R package has a built in function to perform this cross validations.
+
+```{r}
+ABC.Objects <- list()
+ABC.Power <- matrix(NA, length(sample.sizes), 3)
+colnames(ABC.Power) <- c("ErrorRate", "MPP", "MPPwhenTrue")
+er <- matrix(NA, 18,6)
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- c()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+  
+  #pull out top 10 summary statistics as determined by RF
+  all.sum.stats <- all.sum.stats[,c(4, 9, 10, 12, 13, 16, 18, 19, 20, 27)]
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  Model.Index <- rep(rep(c("BM.neut", "BM.filt", "BM.comp", "OU.neut", "OU.filt", "OU.comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  
+  #run cross validation analysis
+  nval=500
+  cv <- cv4postpr(Model.Index, all.sum.stats, nval=nval, tols=.01, method="rejection") 
+  ABC.Objects[[i]] <- cv
+  
+  #Extract info from each run about accuracy of classifying each model
+  model.names <- c("BM.comp", "BM.filt", "BM.neut", "OU.comp", "OU.filt",  "OU.neut")
+  tmp.matrix <- matrix(NA, length(model.names), 3)
+  
+	for (j in 1:length(model.names)){
+		mat <- cv$model.probs$tol0.01[rownames(cv$model.probs$tol0.01)==model.names[j],j]
+		est <- cv$estim$tol0.01[names(cv$estim$tol0.01)==model.names[j]] 
+		tmp.matrix[j,1] <- (sum(est!=model.names[j])/nval)*100 #turn into the error rate %
+		tmp.matrix[j,2] <- mean(mat)
+		tmp.matrix[j,3] <- mean(mat[est==model.names[j]])
+	}
+  
+  er[i,] <- c(tmp.matrix[3,1], tmp.matrix[2,1], tmp.matrix[1,1], tmp.matrix[6,1], tmp.matrix[5,1], tmp.matrix[4,1])
+  ABC.Power[i,] <- apply(tmp.matrix, 2, mean)
+	print(paste("finished ABC cross validation for sample size", sample.sizes[i], "with error rate", ABC.Power[i,1]))
+}
+
+write.table(er, file="ABCtable_ErrRates.csv",sep ="\t")
+```
+
+We can plot these ABC error rates with samples size.
+
+```{r}
+plot(sample.sizes, ABC.Power[,1], type = "b", lty = 1, lwd = 2, ylab= "OOB Error Rates", xlab = "Sample Size",
+     ylim = c(0,50), bty="l", pch=19, col="gray60")
+```
+
+As in the randomForest analysis, we can also see if the model classification improve when we are only classifying the models of community assembly, and not also trying to classify the model of trait evolution. For this, we only need some slight modifications to the code.
+
+```{r}
+ABC.Objects_2 <- list()
+ABC.Power_2 <- matrix(NA, length(sample.sizes), 3)
+colnames(ABC.Power_2) <- c("ErrorRate", "MPP", "MPPwhenTrue")
+
+for (i in 1:length(sample.sizes)){
+  
+  #get all summary stats from each of the models simulated for this sample size (we simulated 6 models)
+  all.sum.stats <- data.frame()
+  for (k in 1:length(SimOutput[[1]])){
+    all.sum.stats <- rbind(all.sum.stats, SimOutput[[i]][[k]]$summary.stats)
+  }
+    all.sum.stats <- data.frame(all.sum.stats)
+  #pull out top 10 summary statistics as determined by RF
+  all.sum.stats <- all.sum.stats[,c(4, 9, 10, 12, 13, 16, 18, 19, 20, 27)]
+  
+  #Correspond each simulation to the model it was simulated under using a categorical variable. 
+  Model.Index <- rep(rep(c("neut", "filt", "comp", "neut", "filt", "comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  #Model.Index <- rep(rep(c("BM.neut", "BM.filt", "BM.comp", "OU.neut", "OU.filt", "OU.comp"), each=nrow(all.sum.stats)/length(SimOutput[[1]])))
+  
+  #run cross validation analysis
+  nval=500
+  cv <- cv4postpr(Model.Index, all.sum.stats, nval=nval, tols=.01, method="rejection") 
+  ABC.Objects_2[[i]] <- cv
+  
+  #Extract info from each run about accuracy of classifying each model
+  model.names <- c("comp", "filt", "neut")
+  #model.names <- c("BM.comp", "BM.filt", "BM.neut", "OU.comp", "OU.filt",  "OU.neut")
+  tmp.matrix <- matrix(NA, length(model.names), 3)
+  
+	for (j in 1:length(model.names)){
+		mat <- cv$model.probs$tol0.01[rownames(cv$model.probs$tol0.01)==model.names[j],j]
+		est <- cv$estim$tol0.01[names(cv$estim$tol0.01)==model.names[j]] 
+		tmp.matrix[j,1] <- (sum(est!=model.names[j])/nval)*100 #turn into the error rate %
+		tmp.matrix[j,2] <- mean(mat)
+		tmp.matrix[j,3] <- mean(mat[est==model.names[j]])
+	}
+  
+  print(tmp.matrix)
+  ABC.Power_2[i,] <- apply(tmp.matrix, 2, mean)
+	print(paste("finished ABC cross validation for sample size", sample.sizes[i], "with error rate", ABC.Power_2[i,1]))
+}
+```
+
+We can plot these ABC results along with the RF results
+
+```{r}
+plot(sample.sizes, RF.ErrRates, type = "b", lty = 1, pch=19, lwd = 2, ylab= "OOB Error Rates (%)", xlab = "Sample Size",
+     ylim = c(0,50), bty="l")
+points(sample.sizes, RF.ErrRates_2, type = "b", pch=15, lty = 1, lwd = 2)
+points(sample.sizes, ABC.Power[,1], type = "b", pch=19, lty = 1, lwd = 2, col = "red")
+points(sample.sizes, ABC.Power_2[,1], type = "b", pch=15, lty = 1, lwd = 2, col = "red")
+legend("topright", legend = c("RF.T+C", "RF.C", "ABC.T+C", "ABC.C"), lty = c(1,1,1,1), pch = c(19,15,19,15), bty="n", 
+       lwd = c(3,3,3,3), cex = 1, col = c("black", "black", "red", "red"))
+
+
+plot(sample.sizes, RF.ErrRates, type = "b", lty = 1, pch=19, lwd = 2, ylab= "OOB Error Rates (%)", xlab = "Sample Size",
+     ylim = c(0,80), bty="l", col=rgb(.4, .7, .7, 1))
+points(sample.sizes, ABC.Power[,1], type = "b", pch=15, lty = 1, lwd = 2, col = "gray33")
+legend("topright", legend = c("RF", "ABC"), lty = c(1,1,1,1), pch = c(19,15,19,15), bty="n", 
+       lwd = c(3,3,3,3), cex = 1, col = c(rgb(.4, .7, .7, 1), "gray33"))
+
+plot(sample.sizes, RF.ErrRates_2, type = "b", lty = 1, pch=19, lwd = 2, ylab= "OOB Error Rates (%)", xlab = "Sample Size",
+     ylim = c(0,30), bty="l", col=rgb(.4, .7, .7, 1))
+points(sample.sizes, ABC.Power_2[,1], type = "b", pch=15, lty = 1, lwd = 2, col = "gray33")
+legend("topright", legend = c("RF", "ABC"), lty = c(1,1,1,1), pch = c(19,15,19,15), bty="n", 
+       lwd = c(3,3,3,3), cex = 1, col = c(rgb(.4, .7, .7, 1), "gray33"))
+
+```
+
+
+### Phylogenetic Dispersion Metrics
+
+To meausure phylogenetic dispersion we will calculate two metircs, Mean Pairwise Distance (MPD), and Mean Nearest-Neighbot Distance (MNTD), using the picante package (Kembel et al. 2010). For each simulation we can use the function ses.mpd and ses.mpd (also from the picante package) to compare observed measures of mpd and mntd to expectations under a null model of phylogenetic community structure.
+
+We can use the same function as we used before to simulate community aseembly data, only this time, instead of outputing the summary statistics, we can output the phylogenetic dispersion metrics, along with the output of the ses.mpd and ses.mntd functions. To do this we can change the boolean parameters of the function output.sum.stats to  FALSE and output.phydisp.stats to TRUE.
+
+```{r message=FALSE, results='hide'}
+#This script ran with 1000 sims per 18 sample sizes will ran for approximately 12 hours on my local machine
+ #source("/Users/Megan/Documents/GitHub/CAMI/R/Functions.R")
+sample.sizes <- c(100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950)
+sims <- 10
+SimOutput_PhyDisp <- list()
+
+for (i in 17:length(sample.sizes)) {
+  
+  #BM models
+  BM.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "neutral", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  BM.filtering <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "filtering", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  BM.competition <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "competition", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  
+ #OU models
+  OU.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "neutral", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  OU.filtering <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "filtering", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  OU.competition <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "competition", output.sum.stats = FALSE, output.phydisp.stats = TRUE)
+  
+  SimOutput_PhyDisp[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)
+  print(paste("completed simulations of sample size", sample.sizes[i]))
+  
+}
+
+#save output object, which is a list of lists
+date <- Sys.Date()
+save(SimOutput_PhyDisp, file=paste("SimOutput_PhyDisp",date,".Rdata", sep=""))
+```
+
+After the data are simulated, we can asses how accurate the results are. For this, if either test statistic (mpd or mntd) is in the lower 2.5% of the null distribution, habitat filtering is infered because the data are more cluster than would be expected by chance. If either test statistic is in the upper 2.5%, competitive exclusion is assumed becuase the data are significantly over-dispersed than would be expected by chance. We will infer these models using the phylogenetic data and the trait data. 
+
+We will calculate power in much the same way as we did with RF and ABC, by caclulating how often MPD and MNTD can correctly classify the data we simualted under the various models. 
+
+```{r message=FALSE, results = 'hide'}
+#simulating on tesla, for 100 for each sample size and model (100*18*6 simulations)
+load(file=paste("SimOutput_PhyDisp",date,".Rdata", sep=""))
+
+PhyDispError <- matrix(NA, length(SimOutput_PhyDisp), 12)
+colnames(PhyDispError) <- c("Phy.mpd.neut", "Phy.mpd.filt", "Phy.mpd.comp","Phy.mntd.neut", "Phy.mntd.filt", "Phy.mntd.comp",
+                            "Tr.mpd.neut", "Tr.mpd.filt", "Tr.mpd.compt", "Tr.mntd.neut", "Tr.mntd.filt", "Tr.mntd.compt")
+sims=10
+
+for (i in 1:length(SimOutput_PhyDisp)) {
+      
+  for (k in 1:6){
+    if (k == 1 || k == 4){
+      PhyDispError[i, 1] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] > 0.025  & SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] < 0.975) / sims)
+      PhyDispError[i, 4] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,15] > 0.025  & SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,15] < 0.975) / sims)
+      PhyDispError[i, 7] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,23] > 0.025  & SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,23] < 0.975) / sims)
+      PhyDispError[i, 10] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,31] > 0.025  & SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,31] < 0.975) / sims)
+    }
+    if (k == 2 || k == 5){
+      PhyDispError[i, 2] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] < 0.025) / sims)
+      PhyDispError[i, 5] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,15] < 0.025) / sims)
+      PhyDispError[i, 8] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,23] < 0.025) / sims)
+      PhyDispError[i, 11] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,31] < 0.025) / sims)
+    }
+    if (k == 3 || k == 6){
+      PhyDispError[i, 3] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] > 0.975) / sims)
+      PhyDispError[i, 6] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,15] > 0.975) / sims)
+      PhyDispError[i, 9] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,23] > 0.975) / sims)
+      PhyDispError[i, 12] <- 1 - (sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,31] > 0.975) / sims)
+    }
+    
+  }
+}
+
+all.neut <- c()
+for (i in 1:length(SimOutput_PhyDisp)) {
+  for (k in 1:6){
+    
+    all.neut <- c(all.neut, sum( SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] > 0.025  & SimOutput_PhyDisp[[i]][[k]]$phydisp.stats[,7] < 0.975))
+
+    
+    }
+  }
+
+sum(all.neut)/1080
+
+mean(c(PhyDispError[,1], PhyDispError[,4]))
+##plot the error rates
+phy.error <- c()
+tr.error <- c()
+for (i in 1:nrow(PhyDispError)){
+  phy.error <- c(phy.error, mean(PhyDispError[i, 1:6]))
+  tr.error <- c(tr.error, mean(PhyDispError[i, 7:12]))
+}
+
+```
+
+Now we can plot all of our results together and compare them
+
+```{r}
+#plot1
+plot(sample.sizes, phy.error, type = "b", lty = 1, pch=15, lwd = 2.5, ylab= "Error Rate", xlab = "Sample Size",
+     ylim = c(0,1), bty="l", col="#6393B7", cex=1.5)
+
+legend("top", legend = "Disp.Phy", lty = 1, pch = 15, bty="n", 
+       lwd = 3, cex = 1.3, col = "#6393B7", ncol=2)
+
+#plot2
+plot(sample.sizes, phy.error, type = "b", lty = 1, pch=15, lwd = 2.5, ylab= "Error Rate", xlab = "Sample Size",
+     ylim = c(0,1), bty="l", col="#6393B7", cex=1.5)
+points(sample.sizes, tr.error, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#A1A89D", cex=1.5)
+
+legend("top", legend = c("Disp.Phy", "Disp.Traits"), lty = c(1,1), pch = c(15,15), bty="n", 
+       lwd = c(3,3), cex = 1.3, col = c("#6393B7", "#A1A89D"), ncol=2)
+
+#plot3 
+plot(sample.sizes, phy.error, type = "b", lty = 1, pch=15, lwd = 2.5, ylab= "Error Rate", xlab = "Sample Size",
+     ylim = c(0,1), bty="l", col="#6393B7", cex=1.5)
+points(sample.sizes, tr.error, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#A1A89D", cex=1.5)
+points(sample.sizes, ABC.Power_2[,1]/100, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#1F0D76", cex=1.5)
+legend("top", legend = c("Disp.Phy", "Disp.Traits", "ABC"), lty = c(1,1,1), pch = c(15,15,15), bty="n", 
+       lwd = c(3,3,3), cex = 1.3, col = c("#6393B7", "#A1A89D", "#1F0D76"), ncol=2)
+
+
+#plot4
+plot(sample.sizes, phy.error, type = "b", lty = 1, pch=15, lwd = 2.5, ylab= "Error Rate", xlab = "Sample Size",
+     ylim = c(0,1), bty="l", col="#6393B7", cex=1.5)
+points(sample.sizes, tr.error, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#A1A89D", cex=1.5)
+points(sample.sizes, ABC.Power_2[,1]/100, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#1F0D76", cex=1.5)
+points(sample.sizes, RF.ErrRates_2/100, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#6FB547", cex=1.5)
+legend("top", legend = c("Disp.Phy", "Disp.Traits", "ABC", "RF"), lty = c(1,1,1,1), pch = c(15,15,15,15), bty="n", 
+       lwd = c(3,3,3,3), cex = 1.3, col = c("#6393B7", "#A1A89D", "#1F0D76", "#6FB547"), ncol=2)
+
+
+
+plot(sample.sizes,ABC.Power[,1], type = "b", lty = 1, pch=15, lwd = 2.5, ylab= "Error Rates (%)", xlab = "Sample Size",
+     ylim = c(0,100), bty="l", col="#1F0D76", cex=1.5)
+points(sample.sizes, RF.ErrRates, type = "b", pch=15, lty = 1, lwd = 2.5, col = "#6FB547", cex=1.5)
+legend("top", legend = c( "ABC", "RF"), lty = c(1,1,1,1), pch = c(15,15,15,15), bty="n", 
+       lwd = c(3,3,3,3), cex = 1.3, col = c("#1F0D76", "#6FB547"), ncol=2)
+
+```
+
