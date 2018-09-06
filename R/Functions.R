@@ -26,7 +26,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  eps = c(0.2, 0.8),
                                  sig2 = c(1, 10),
                                  alpha = c(0.01, 0.2),
-                                 tau = c(5, 50)) {
+                                 tau = c(,5 50)) {
 
   #check all parameters and reply with error message if any incomplete
   if (missing(sims))
@@ -205,7 +205,7 @@ SimCommunityAssembly <- function(sims, N, local,
 
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
       probs = c()
-      while (length(local.traits) < n && !rej > 10000) {
+      while (length(local.traits) < n && !rej > 10000 && length(local.traits) > 1) {
         Xj <- sample(traits,1)
        
         
