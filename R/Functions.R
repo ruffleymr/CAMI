@@ -205,7 +205,7 @@ SimCommunityAssembly <- function(sims, N, local,
 
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
       probs = c()
-      while (length(local.traits) < n && !rej > 10000 && length(local.traits) > 1) {
+      while ((length(local.traits) < n && !rej > 10000) || (length(local.traits) < 2)) {
         Xj <- sample(traits,1)
        
         
