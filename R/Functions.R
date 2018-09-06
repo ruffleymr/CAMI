@@ -26,7 +26,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  eps = c(0.2, 0.8),
                                  sig2 = c(1, 10),
                                  alpha = c(0.01, 0.2),
-                                 tau = c(,5 50)) {
+                                 tau = c(5, 50)) {
 
   #check all parameters and reply with error message if any incomplete
   if (missing(sims))
