@@ -194,20 +194,29 @@ SimCommunityAssembly <- function(sims, N, local,
       probs = c(1,1)
     }
     if (comsim == "filtering" || comsim == "competition"){
-      #sample first species in communtiy; gets in no problem
-      Xi <- sample(traits,1)
-      local.traits <- Xi
-      #remove this species/trait value from regional pool to be sample from
-      traits <- traits[!traits==Xi]
+
+      
+      if (comsim == "competition") {
+        Xi <- sample(traits,1)
+        local.traits <- Xi
+        traits <- traits[!traits==Xi]
+      }else{ local.traits <- c()}
       
       #determine trait optimum for filtering models
       opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
-
+      
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
-      probs = c()
-      while ((length(local.traits) < n && !rej > 10000) || (length(local.traits) < 2)) {
+      probs <- c()
+      
+      while ((length(local.traits) < n && !rej > 10000) {
+        
+        if (rej == 1000 && length(local.traits) < 1 ){
+          opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
+          rej <- 0
+          probs <- c()
+        }
+        
         Xj <- sample(traits,1)
-       
         
         #calculate the probability of acceptance for this species into community, determined by Tau and the mean of the local trait values
         if (comsim == "filtering") {
@@ -226,6 +235,8 @@ SimCommunityAssembly <- function(sims, N, local,
           rej=rej+1
           probs = c(probs, Pj) }
       }
+  
+      
     }
 
     #construct local tree

@@ -26,21 +26,21 @@ For the power analysis, there are two elements we want to check out. The first b
 
 ```{r message=FALSE, results='hide'}
 #This script ran with 1000 sims per 18 sample sizes ran for approximately 20 hours
-sample.sizes <- c(100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950)
+sample.sizes <- seq(50,1000,50)
 sims <- 1000
 SimOutput <- list()
 
-for (i in 10:length(sample.sizes)) {
+for (i in 1:length(sample.sizes)) {
   
   #BM models
   BM.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "neutral")
-  BM.filtering <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "filtering")
-  BM.competition <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "competition")
+  BM.filtering <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "filtering", tau = c(10,30))
+  BM.competition <- SimCommunityAssembly(sims = sims, N = sample.sizes[i], local = 0.5, traitsim = "BM", comsim = "competition", tau = c(10,30))
   
   #OU models
   OU.neutral <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "neutral")
-  OU.filtering <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "filtering")
-  OU.competition <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "competition")
+  OU.filtering <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "filtering",  tau = c(10,30))
+  OU.competition <- SimCommunityAssembly(sims = sims, N =  sample.sizes[i], local = 0.5, traitsim = "OU", comsim = "competition",  tau = c(10,30))
   
   SimOutput[[i]] <- list(BM.neutral, BM.filtering, BM.competition, OU.neutral, OU.filtering, OU.competition)
   print(paste("completed simulations of sample size", sample.sizes[i]))
@@ -50,7 +50,6 @@ for (i in 10:length(sample.sizes)) {
 #save output object, which is a list of lists
 date <- Sys.Date()
 save(SimOutput, file=paste("SimOutput",date,".Rdata", sep=""))
-#This dataset was save on August 1, 2018
 ```
 
 ### Random Forest
@@ -303,7 +302,7 @@ We can use the same function as we used before to simulate community aseembly da
 ```{r message=FALSE, results='hide'}
 #This script ran with 1000 sims per 18 sample sizes will ran for approximately 12 hours on my local machine
  #source("/Users/Megan/Documents/GitHub/CAMI/R/Functions.R")
-sample.sizes <- c(100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950)
+sample.sizes <- seq(50,1000,50)
 sims <- 10
 SimOutput_PhyDisp <- list()
 
