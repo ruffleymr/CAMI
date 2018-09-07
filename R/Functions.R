@@ -208,7 +208,7 @@ SimCommunityAssembly <- function(sims, N, local,
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
       probs <- c()
       
-      while ((length(local.traits) < n && !rej > 10000) {
+      while (length(local.traits) < n && !rej > 10000) {
         
         if (rej == 1000 && length(local.traits) < 1 ){
           opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
