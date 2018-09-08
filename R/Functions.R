@@ -188,10 +188,10 @@ SimCommunityAssembly <- function(sims, N, local,
 
 
     #Simulate Community under given method
-    rej = 0
+    rej <- 0
     if (comsim == "neutral"){
       local.traits <- sample(traits, n)
-      probs = c(1,1)
+      probs <- c(1,1)
     }
     if (comsim == "filtering" || comsim == "competition"){
 
@@ -210,10 +210,12 @@ SimCommunityAssembly <- function(sims, N, local,
       
       while (length(local.traits) < n && !rej > 10000) {
         
-        if (rej == 1000 && length(local.traits) < 1 ){
+        if (rej > 1000 && length(local.traits) < 2 ){
           opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
           rej <- 0
           probs <- c()
+          traits <- regional.traits
+          local.traits <-c()
         }
         
         Xj <- sample(traits,1)
