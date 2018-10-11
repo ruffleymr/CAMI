@@ -26,7 +26,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                  eps = c(0.2, 0.8),
                                  sig2 = c(1, 10),
                                  alpha = c(0.01, 0.2),
-                                 tau = c(5, 50)) {
+                                 tau = c(1, 60)) {
 
   #check all parameters and reply with error message if any incomplete
   if (missing(sims))
@@ -510,7 +510,7 @@ CalcPhyDispStats <- function(regional.tree,
   
   #if you don't combine the matrix to make two rows, the function calculates each column as a community (small bug)
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
-      
+    
   ##add this in
   ses.mpd.trait <- picante::ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
   ses.mntd.trait <- picante::ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
