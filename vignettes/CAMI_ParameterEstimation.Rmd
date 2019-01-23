@@ -137,16 +137,21 @@ We can also simulate data under a fixed value of sig2, rather than a prior range
 
 ```{r message=FALSE, results='hide'}
 #This will also take ~2 hours to simulate
-#ref.dataset <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "filtering", 
-#                                    sig2 = 3, tau = c(5, 50))
+
+ref.dataset.F.s <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "filtering", 
+                                    sig2 = c(2,4), tau = c(5, 35))
+
+ref.dataset.F.b <- SimCommunityAssembly(sims = 10000, N = 800, local = 0.5, traitsim = "BM", comsim = "filtering", 
+                                    sig2 = c(2,4), tau = c(5, 35))
+
 
 ref.dataset.C.s <- SimCommunityAssembly(sims = 10000, N = 200, local = 0.5, traitsim = "BM", comsim = "competition", 
-                                  sig2 = c(1,5), tau = c(5, 50))
+                                  sig2 = c(2,4), tau = c(5, 35))
 
-ref.dataset <- ref.dataset.C.s
+ref.dataset.C.b <- SimCommunityAssembly(sims = 10000, N = 800, local = 0.5, traitsim = "BM", comsim = "competition", 
+                                 sig2 = c(2,4), tau = c(5, 35))
 
-ref.dataset.C.b <- SimCommunityAssembly(sims = 10000, N = 500, local = 0.5, traitsim = "BM", comsim = "competition", 
-                                 sig2 = c(1,5), tau = c(5, 50))
+
 
 save(ref.dataset.C.s, file="RefDataset.comp.sig2prior.small.Rdata")
 save(ref.dataset.C.b, file="RefDataset.comp.sig2prior.big.Rdata")
