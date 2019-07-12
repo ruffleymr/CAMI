@@ -2,7 +2,7 @@
 #'
 #' @param sims: The number of simulations; sims
 #' @param N: The size of the regional communities, can be a single number or a prior range
-#' @param local: size of the local communities, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions 
+#' @param local: size of the local communities, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions
 #' @param traitsim: either 'BM' or 'OU'
 #' @param comsim: either "netural", "filtering", "competition"
 #' @param lambda: speciation rate, can be single number or prior range, default is a unifrom prior between 0.5 and 2.0
@@ -11,11 +11,11 @@
 #' @param alpha: pull to trait optimum, defualt is a uniform prior range between 0.01 and 0.2
 #' @param tau: stregnth of the community assembly model, default is a uniform prior range between 5.0 and 5.0
 #'
-#' @return output is a list of two matrices, one containing all parameter values for each simulation, and the other containing all 
+#' @return output is a list of two matrices, one containing all parameter values for each simulation, and the other containing all
 #'         summary statistics. In both matrices, each row corresponds to one simulation
 #' @export
 #'
-#' @examples 
+#' @examples
 SimCommunityAssembly <- function(sims, N, local,
                                  traitsim,
                                  comsim,
@@ -94,7 +94,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                    "Mode1",		  #29
                                    "Mode2")		  #30
   }
-  
+
   if (output.phydisp.stats == TRUE) {
     phydisp.stats <- matrix(NA, nrow = sims, 32)
     colnames(phydisp.stats) <-   c("ntaxa", 	        #1
@@ -107,7 +107,7 @@ SimCommunityAssembly <- function(sims, N, local,
                                    "runs",		        #8
                                    "ntaxa", 	        #9
                                    "mntd.obs",		    #10
-                                   "mntd.rand.mean",  #11		
+                                   "mntd.rand.mean",  #11
                                    "mntd.rand.sd",	  #12
                                    "mntd.obs.rank",		#13
                                    "mntd.obs.z",			#14
@@ -123,19 +123,19 @@ SimCommunityAssembly <- function(sims, N, local,
                                    "runs",		        #8
                                    "ntaxa", 	        #9
                                    "mntd.obs",		    #10
-                                   "mntd.rand.mean",  #11		
+                                   "mntd.rand.mean",  #11
                                    "mntd.rand.sd",	  #12
                                    "mntd.obs.rank",		#13
                                    "mntd.obs.z",			#14
                                    "mntd.obs.p",		  #15
                                    "runs")		        #16
   }
-  
+
   ##initiate progress bar
   if (disable.bar == FALSE){
   pb <- txtProgressBar(min = 0, max = sims, style = 3)
   }
-  
+
   for (i in 1:sims){
 
     #drawn N if prior
@@ -172,7 +172,7 @@ SimCommunityAssembly <- function(sims, N, local,
         n <- N.drawn * local
       }
     }
-      
+
     #Simulate Regional Community
     mu <- lambda.drawn*eps.drawn
     regional.tree <- TreeSim::sim.bd.taxa(n=N.drawn, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
@@ -195,21 +195,21 @@ SimCommunityAssembly <- function(sims, N, local,
     }
     if (comsim == "filtering" || comsim == "competition"){
 
-      
+
       if (comsim == "competition") {
         Xi <- sample(traits,1)
         local.traits <- Xi
         traits <- traits[!traits==Xi]
       }else{ local.traits <- c()}
-      
+
       #determine trait optimum for filtering models
       opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
-      
+
       #Continuosly sample regional pool until local community is at required size as determined by 'local'
       probs <- c()
-      
+
       while (length(local.traits) < n && !rej > 10000) {
-        
+
         if (rej > 1000 && length(local.traits) < 2 ){
           opt <- rnorm(n = 1, mean = mean(regional.traits), sd = sd(regional.traits))
           rej <- 0
@@ -217,9 +217,9 @@ SimCommunityAssembly <- function(sims, N, local,
           traits <- regional.traits
           local.traits <-c()
         }
-        
+
         Xj <- sample(traits,1)
-        
+
         #calculate the probability of acceptance for this species into community, determined by Tau and the mean of the local trait values
         if (comsim == "filtering") {
           Pj <- (exp(-((Xj-opt)^2)/tau.drawn))
@@ -227,7 +227,7 @@ SimCommunityAssembly <- function(sims, N, local,
         if (comsim == "competition"){
           Pj <- 1 - (exp(-((mean(local.traits)-Xj)^2)/tau.drawn))
         }
-        
+
         #if the probability is > than the random uniform #, the species is accepted into the communtiy
         if (Pj > runif(1,0,1)) {
           local.traits <- c(local.traits, Xj)
@@ -237,8 +237,8 @@ SimCommunityAssembly <- function(sims, N, local,
           rej=rej+1
           probs = c(probs, Pj) }
       }
-  
-      
+
+
     }
 
     #construct local tree
@@ -255,7 +255,7 @@ SimCommunityAssembly <- function(sims, N, local,
     if (output.phydisp.stats == TRUE) {
       phydisp.stats[i, ] <- CalcPhyDispStats(regional.tree, local.tree, regional.traits, local.traits)
     }
-    
+
     if (disable.bar == FALSE){
       Sys.sleep(.1)
       # update progress bar
@@ -276,7 +276,7 @@ SimCommunityAssembly <- function(sims, N, local,
     output <- list(data.frame(params), phydisp.stats)
     names(output) <- c("params", "phydisp.stats")
   }
-  
+
   if (disable.bar == FALSE){
     close(pb)
   }
@@ -295,7 +295,7 @@ SimCommunityAssembly <- function(sims, N, local,
 #' @return vector of summary statistics
 #' @export
 #'
-#' @examples: 
+#' @examples:
 CalcSummaryStats <- function(regional.tree,
                              local.tree,
                              regional.traits,
@@ -487,7 +487,7 @@ CalcSummaryStats <- function(regional.tree,
 #' @return vector of output from ses.mpd and ses.mndt
 #' @export
 #'
-#' @examples: 
+#' @examples:
 CalcPhyDispStats <- function(regional.tree,
                              local.tree,
                              regional.traits,
@@ -501,24 +501,24 @@ CalcPhyDispStats <- function(regional.tree,
     stop("Number of regional traits does not match the number of tips on the regional tree", call. = F)
   if (length(local.traits)!=length(local.tree$tip.label))
     stop("Number of local traits does not match the number of tips on the local tree", call. = F)
-  
+
   #Make presence absence matrix where the columns are each species and the row are each community, here we have only 1 community (1 row)
   community.pa.matrix <- matrix(0, 1, length(regional.tree$tip.label))
   colnames(community.pa.matrix) <- regional.tree$tip.label
   #if the species are in the local community, make them a 1
   community.pa.matrix[regional.tree$tip.label %in% local.tree$tip.label] <- 1
-  
+
   #if you don't combine the matrix to make two rows, the function calculates each column as a community (small bug)
   community.pa.matrix <- rbind(community.pa.matrix,community.pa.matrix)
-    
+
   ##add this in
-  ses.mpd.trait <- picante::ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd.trait <- picante::ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=100)[1,]
-  
+  ses.mpd.trait <- picante::ses.mpd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=1000)[1,]
+  ses.mntd.trait <- picante::ses.mntd(samp=community.pa.matrix, dis=dist(regional.traits), null.model="taxa.labels", runs=1000)[1,]
+
   #standarized effect size of mean pairwise phy dist and mean nearest neighbor phy dist
-  ses.mpd.phy <- picante::ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
-  ses.mntd.phy <- picante::ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=100)[1,]
-  
+  ses.mpd.phy <- picante::ses.mpd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=1000)[1,]
+  ses.mntd.phy <- picante::ses.mntd(samp=community.pa.matrix, dis=cophenetic(regional.tree), null.model="taxa.labels", runs=1000)[1,]
+
   output <- unlist(c(ses.mpd.phy[1:8], ses.mntd.phy[1:8], ses.mpd.trait[1:8], ses.mntd.trait[1:8]))
   return(output)
 }
