@@ -117,10 +117,11 @@ for (i in 1:ncol(Kip.Coms)){
   colnames(Kip.dispersion.stats) <- names(stats)
 }
 
-## Write out dispersion metrics table for Supplemental Material
-table <- Kip.dispersion.stats[,c(2,3,4,)]
-
-
+## Write out dispersion metrics table for Supplemental Material, one for phylogentic and one for phenotypic
+phy.table <- Kip.dispersion.stats[,c(2,3,4,7,10,11,12,15)]
+write.csv(phy.table, file="PhyDispTable8KipukaComs.csv")
+phen.table <- Kip.dispersion.stats[,c(18,19,20,23, 26,27,28,31)]
+write.csv(phen.table, file="PhenDispTable8KipukaComs.csv")
 ```
 
 #### Simulate Community Assembly data
@@ -159,7 +160,6 @@ load(file="BMcomp.dataEmp.Rdata")
 load(file="OUneutral.dataEmp.Rdata")
 load(file="OUfilt.dataEmp.Rdata")
 load(file="OUcomp.dataEmp.Rdata")
-
 ```
 
 We can now use the simulated data to perform model selection using randomForest and Approximate Bayesian Computation. 
@@ -168,22 +168,22 @@ We can now use the simulated data to perform model selection using randomForest 
 
 ```{r message=FALSE}
 #combine summary stats and model index into 1 data frame for RF and ABC; ALL MODELS
-sum.stats.all <- rbind(BM.neutral.data$summary.stats[1:1000,], BM.filtering.data$summary.stats[1:1000,], BM.competition.data$summary.stats[1:1000,], OU.neutral.data$summary.stats[1:1000,], OU.filtering.data$summary.stats[1:1000,], OU.competition.data$summary.stats[1:1000,])
-mod.index.all <- rep(c("BMneut", "BMfilt", "BMcomp", "OUneut", "OUfilt", "OUcomp"), each=1000)
+sum.stats.all <- rbind(BM.neutral.data$summary.stats[5001:10000,], BM.filtering.data$summary.stats[5001:10000,], BM.competition.data$summary.stats[5001:10000,], OU.neutral.data$summary.stats[5001:10000,], OU.filtering.data$summary.stats[5001:10000,], OU.competition.data$summary.stats[5001:10000,])
+mod.index.all <- rep(c("BMneut", "BMfilt", "BMcomp", "OUneut", "OUfilt", "OUcomp"), each=5000)
 ref.table.all <- na.omit(data.frame(sum.stats.all, mod.index.all))
 
 #determine rf error rates using all data
 rf.emp.all <- randomForest(mod.index.all ~., data=ref.table.all, ntree=1000, importance=T)
 
 #variable importance information
-varImpPlot(rf.emp.all)
+varImpPlot(rf.emp.ou)
 
 vote.all <- predict(rf.emp.all, Kip.summary.stats, type="prob")
 colSums(vote.all)
 
 ##combine summary stats and model index into 1 data frame for RF and ABC; OU MODELS ONLY
-sum.stats.ou <- rbind(OU.neutral.data$summary.stats[1:1000,], OU.filtering.data$summary.stats[1:1000,], OU.competition.data$summary.stats[1:1000,])
-mod.index.ou <- rep(c("neut", "filt", "comp"), each=1000)
+sum.stats.ou <- rbind(OU.neutral.data$summary.stats[1:10000,], OU.filtering.data$summary.stats[1:10000,], OU.competition.data$summary.stats[1:10000,])
+mod.index.ou <- rep(c("neut", "filt", "comp"), each=10000)
 ref.table.ou <- na.omit(data.frame(sum.stats.ou, mod.index.ou))
 
 #determine rf error rates using OU data
@@ -192,6 +192,11 @@ rf.emp.ou <- randomForest(mod.index.ou ~., data=ref.table.ou, ntree=1000, import
 vote.ou <- predict(rf.emp.ou, Kip.summary.stats, type="prob")
 colSums(vote.ou)
 
+varImpPlot(rf.emp.ou)
+
+## Write out dispersion metrics table for Supplemental Material, one for phylogentic and one for phenotypic
+write.csv(vote.all, file="RF_allMods_Table8KipukaComs.csv")
+write.csv(vote.ou, file="RF_OUMods_Table8KipukaComs.csv")
 ```
 
 #### ABC
@@ -215,6 +220,13 @@ abc.emp.all <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.all,
 ABC.all.summary[[i]] <- summary(abc.emp.all)
 }
 
+ABC.all.table <- matrix(NA, 8, 6)
+for (i in 1:ncol(Kip.Coms)){      
+  ABC.all.table[i,] <- ABC.all.summary[[i]]$Prob
+  colnames(ABC.all.table) <- names(ABC.all.summary[[i]]$Prob)
+}
+
+
 #determine posterior model probabilities for empirical data using only OU data
 ABC.ou.summary <- list()
 for (i in 1:ncol(Kip.Coms)){
@@ -223,6 +235,16 @@ for (i in 1:ncol(Kip.Coms)){
                      tol = 0.002, method="rejection")
   ABC.ou.summary[[i]] <- summary(abc.emp.ou)
 }
+
+ABC.ou.table <- matrix(NA, 8, 3)
+for (i in 1:ncol(Kip.Coms)){      
+  ABC.ou.table[i,] <- ABC.ou.summary[[i]]$Prob
+  colnames(ABC.ou.table) <- names(ABC.ou.summary[[i]]$Prob)
+}
+
+write.csv(ABC.all.table, file="ABC_allMods_Table8KipukaComs.csv")
+write.csv(ABC.ou.table, file="ABC_OUMods_Table8KipukaComs.csv")
+
 ```
 
 
@@ -242,6 +264,8 @@ for (i in 1:ncol(Kip.Coms)){
   Tau.estimates[[i]] <- tau
 }
 
+save(Tau.estimates, file="TauMedEstimates_8Kipukas.Rdata")
+
 hist( Tau.estimates[[1]])
 hist( Tau.estimates[[2]])
 hist( Tau.estimates[[3]])
@@ -252,16 +276,17 @@ hist( Tau.estimates[[7]])
 hist( Tau.estimates[[8]])
 
 #do the same for tau
-getwd()
-tiff('KipukaCom_8_TauPlot.tiff', units="in", width=5, height=4, res=2000, compression = 'lzw')
+
+pdf('KipukaCom_8_TauPlot.pdf', width=5, height=4)
+i=8
 tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
-                      tau = c(as.numeric(paste(OU.filtering.data$params[,10])), Tau.estimates[[8]]))
+                      tau = c(as.numeric(paste(OU.filtering.data$params[,10])), Tau.estimates[[i]]))
                                     
 ggplot(tau.pp, aes(x=tau, fill=dt)) + 
   geom_density() + 
   scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
   theme(legend.position="none") +
-  geom_vline(aes(xintercept=median(Tau.estimates[[8]])), color="black", linetype="dashed", lwd=1.2) 
+  geom_vline(aes(xintercept=median(Tau.estimates[[i]])), color="black", linetype="dashed", lwd=1.2) 
 ```
 
 ```{r}
@@ -270,93 +295,19 @@ for (i in 1:8) {
   median.taus <- c(median.taus, median(Tau.estimates[[i]]))
 }
 
-plot(vote.ou[,2] ~ median.taus, pch=16, cex=1.4, ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate")
-plot((median.taus~vote.ou[,2]))
+ParamEstDataTable <- cbind(seq(1,8), vote.ou[,2], ABC.ou.table[,2], median.taus)
+colnames(ParamEstDataTable) <-c("kipuka","RF prob", "ABC prob",  "median.tau")
+ParamEstDataTable <- ParamEstDataTable[order(ParamEstDataTable[,4]),]
 
-?lm
-X = seq(1,60,1)
-Y = (X * regre$coefficients[1]) - regre$coefficients[2]
-plot(Y~X,  ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate", type="l", lwd=1.)
+write.csv(ParamEstDataTable, file="ParamEstTable_RF&ABC_8Kipukas.csv")
+
+## Makes Figure
+pdf('ModProb_V_TauEst_8Kipukas.pdf', width=6, height=4.5)
+plot(ParamEstDataTable[,3] ~ ParamEstDataTable[,4], pch=22, cex=1.8, ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate", bty="l", bg="grey80")
+abline(lm(ParamEstDataTable[,3] ~ ParamEstDataTable[,4]), lwd=1.5, lty=5, col="grey40")
+points(ParamEstDataTable[,2] ~ ParamEstDataTable[,4], pch=16, cex=1.5, ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate")
+abline(lm(ParamEstDataTable[,2] ~ ParamEstDataTable[,4]), lwd=1.5, lty=1, col="black")
+legend("topright", legend = c("ABC", "RF"), pch=c(22, 16), col=c("black", "black"), lty=c(5,1), cex=1.5, pt.bg=c("grey80", "black"), pt.cex=c(1.8, 1.5), lwd=c(1.2,1.5), seg.len=4, bty="n")
 ```
 
-
-```{r}
-Kip.Param.Est <- abc(target = Kip.summary.stats.abc, param =OU.neutral.data$params, sumstat = OU.neutral.data$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)], tol = 0.025, method="rejection")
-
-
-sig2.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
-                      sig2 = c(as.numeric(paste(OU.filtering.data$params[,8])), as.numeric(paste(Kip.Param.Est$unadj.values[,8]))))
-         
- ggplot(sig2.pp, aes(x=sig2, fill=dt)) + 
-  geom_density() + 
-  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
-  theme(legend.position="none") +
-  geom_vline(aes(xintercept=median(as.numeric(paste(Kip.Param.Est$unadj.values[,8])))), color="black", linetype="dashed", lwd=2)
-
-#do the same for tau
- tiff('Fig4.tiff', units="in", width=5, height=4, res=2000, compression = 'lzw')
-tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
-                      tau = c(as.numeric(paste(OU.filtering.data$params[,10])), as.numeric(paste(Kip.Param.Est$unadj.values[,10]))))
-                                    
-ggplot(tau.pp, aes(x=tau, fill=dt)) + 
-  geom_density() + 
-  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
-  theme(legend.position="none") +
-  geom_vline(aes(xintercept=median(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))), color="black", linetype="dashed", lwd=2) 
-
-mean(sort(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))[1:142])
-
-pa <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
-                      Pa = c(as.numeric(paste(OU.filtering.data$params[,11])), as.numeric(paste(Kip.Param.Est$unadj.values[,11]))))
-                                    
-ggplot(pa, aes(x=Pa, fill=dt)) + 
-  geom_density() + 
-  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
-  theme(legend.position="none") +
-  geom_vline(aes(xintercept=mean(as.numeric(paste(Kip.Param.Est$unadj.values[,11])))), color="black", linetype="dashed", lwd=2) 
-
-mean(sort(as.numeric(paste(Kip.Param.Est$unadj.values[,11])))[1:142])
-
-plot(density(as.numeric(paste(Kip.Param.Est$unadj.values[,11]))), lwd=2, main="", xlab="inclusion probability", bty="n")
-polygon(density(as.numeric(paste(Kip.Param.Est$unadj.values[,11]))), col="grey77")
-abline(v=median(as.numeric(paste(Kip.Param.Est$unadj.values[,11]))), lty=2, lwd=2)
-
-hist(as.numeric(paste(OU.filtering.data$params[,11])))
-hist(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))
-```
-
-#### Model Fit
-```{r}
-model.fit <- gfit(target=Kip.summary.stats.abc, sumstat=Kip.Param.Est$ss, nb.replicate=100, tol=.001, statistic=median, subset=NULL, trace=FALSE)
-summary(model.fit)
-
-
-pc.data <- rbind(Kip.summary.stats.abc, Kip.Param.Est$ss)
-pca <- prcomp(pc.data)
-attributes(pca)
-plot(pca$x[,1], pca$x[,2], pch=16, ylab="PC2",  xlab="PC1")
-points(pca$x[1,1], pca$x[1,2], pch=21, col="black", cex=1.5, bg="red")
-
-
-summary(model.fit)
-
-dist<-rnorm(100,mean = 3.8, sd = 0.4)
-plot(density(dist), main="", xlab= "median", lwd=2)
-polygon(density(dist), col="grey77")
-abline(v=3.7, lty=2, col="black", lwd=2)
-```
-
-#### Dispersion metrics with phylogenetic and functional trait information
-
-```{r}
-
-Kip.dispersion.stats <- CalcPhyDispStats(regional.tree = Kip.regional.tree,
-                                      local.tree = Kip.local.tree,
-                                      regional.traits = log(Kip.regional.traits),
-                                      local.traits = log(Kip.local.traits))
-
-write.table(Kip.dispersion.stats, file="KipDispersionResults.csv", sep="\t")
-
-```
- 
  
