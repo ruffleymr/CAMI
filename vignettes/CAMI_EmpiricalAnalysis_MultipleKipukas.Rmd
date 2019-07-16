@@ -5,7 +5,7 @@ date: "7/11/2019"
 output: html_document
 ---
 
-### Empirical Analysis of Community Assmebly using CAMI 
+### Empirical Analysis of Community Assmebly using CAMI
 
 In this script we will analyze community phylogenetic and trait data from plant species that occur in different lava flow islands, or kipukas, of Craters of the Moon (CRMO) National Preserve in south central Idaho. The species in the local communtiy only on a specific kipuka, while the regional species include those in the local community as well as plant species that occurr throughout the preserve. We are investigating whether the height of plants species that occur in the shrubb-steppe vegetation at CRMO is impacting which species occur on Kipuka island, via a non-neutral assembly process such as enviromnetal filtering or competitive exclusion.
 
@@ -32,7 +32,7 @@ load(file="Kipuka_LocalTraits.Rdata")
 name.check(phy=Kip.regional.tree, data = Kip.regional.traits)
 ```
 
-Next, we will sort through how many communities are present and how many species occur on each kipuka community. 
+Next, we will sort through how many communities are present and how many species occur on each kipuka community.
 
 ```{r}
 ## Load community data matrix
@@ -42,7 +42,7 @@ Kip.communtiy.matrix <- read.csv(file="KipComm_Matrix_edited.csv", header=T, sep
 ## make NAs 0
 Kip.communtiy.matrix[is.na(Kip.communtiy.matrix)] <- 0
 sum(colSums(Kip.communtiy.matrix) >= 18)
- 
+
 ## We will look 8 of the communities that have 18+ species
 Kip.Coms <- Kip.communtiy.matrix[,colSums(Kip.communtiy.matrix) >= 18]
 
@@ -67,7 +67,7 @@ for (i in 1:ncol(Kip.Coms)) {
 
 #### Determine Model of Trait Evolution
 
-Before we simulate communtiy assembly data and perform model selection, we need to know which model of trait evoltion to simualte under. From the power analysis, we know that we could perform model selection between all communtiy assembly models and trait evolution models, but we will not have the power we would have if we only compared community assembly models. Due to this, we will estimate the model of trait evolution beforehand and simulate our community assembly data accordingly. 
+Before we simulate communtiy assembly data and perform model selection, we need to know which model of trait evoltion to simualte under. From the power analysis, we know that we could perform model selection between all communtiy assembly models and trait evolution models, but we will not have the power we would have if we only compared community assembly models. Due to this, we will estimate the model of trait evolution beforehand and simulate our community assembly data accordingly.
 
 ```{r message = FALSE, results='hide}
 
@@ -143,7 +143,7 @@ write.csv(phen.table, file="PhenDispTable8KipukaComs.csv")
 
 #### Simulate Community Assembly data
 
-Now that we know the model of trait evolution to simulate under, and have an idea for the rate of cahracter change, we can simulate under the three communtiy assembly models; neutral, environmental filtering, and competitive exclusion. The simulations should be characterized to be as simular as possible to the empirical data. 
+Now that we know the model of trait evolution to simulate under, and have an idea for the rate of cahracter change, we can simulate under the three communtiy assembly models; neutral, environmental filtering, and competitive exclusion. The simulations should be characterized to be as simular as possible to the empirical data.
 
 ```{r message=FALSE, results='hide'}
 sims <- 10000
@@ -179,7 +179,7 @@ load(file="OUfilt.dataEmp.Rdata")
 load(file="OUcomp.dataEmp.Rdata")
 ```
 
-We can now use the simulated data to perform model selection using randomForest and Approximate Bayesian Computation. 
+We can now use the simulated data to perform model selection using randomForest and Approximate Bayesian Computation.
 
 #### Random Forest
 
@@ -231,8 +231,8 @@ cv.emp.ou <- cv4postpr(mod.index.ou, sum.stats.ou[,c(4, 10, 12, 13, 16, 18, 19, 
 #determine posterior model probabilities for empirical data using all data
 ABC.all.summary <- list()
 for (i in 1:9){
-abc.emp.all <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.all, 
-                     sumstat = sum.stats.all[, c(4, 10, 12, 13, 16, 18, 19, 20)], 
+abc.emp.all <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.all,
+                     sumstat = sum.stats.all[, c(4, 10, 12, 13, 16, 18, 19, 20)],
                      tol = 0.002, method="rejection")
 ABC.all.summary[[i]] <- summary(abc.emp.all)
 }
@@ -247,8 +247,8 @@ for (i in 1:9){
 #determine posterior model probabilities for empirical data using only OU data
 ABC.ou.summary <- list()
 for (i in 1:ncol(Kip.Coms)){
-  abc.emp.ou <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.ou, 
-                     sumstat = sum.stats.ou[, c(4, 10, 12, 13, 16, 18, 19, 20)], 
+  abc.emp.ou <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.ou,
+                     sumstat = sum.stats.ou[, c(4, 10, 12, 13, 16, 18, 19, 20)],
                      tol = 0.002, method="rejection")
   ABC.ou.summary[[i]] <- summary(abc.emp.ou)
 }
@@ -275,9 +275,9 @@ Tau.estimates <- list()
 
 for (i in 1:ncol(Kip.Coms)){
   Kip.Param.Est <- abc(target = Kip.summary.stats.abc[i,], param =OU.filtering.data$params, sumstat = OU.filtering.data$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)], tol = 0.01, method="rejection")
- 
+
   tau <- as.numeric(paste(Kip.Param.Est$unadj.values[,colnames(Kip.Param.Est$unadj.values) == "tau"]))
-  
+
   Tau.estimates[[i]] <- tau
 }
 
@@ -298,12 +298,12 @@ pdf('KipukaCom_8_TauPlot.pdf', width=5, height=4)
 i=8
 tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
                       tau = c(as.numeric(paste(OU.filtering.data$params[,10])), Tau.estimates[[i]]))
-                                    
-ggplot(tau.pp, aes(x=tau, fill=dt)) + 
-  geom_density() + 
+
+ggplot(tau.pp, aes(x=tau, fill=dt)) +
+  geom_density() +
   scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
   theme(legend.position="none") +
-  geom_vline(aes(xintercept=median(Tau.estimates[[i]])), color="black", linetype="dashed", lwd=1.2) 
+  geom_vline(aes(xintercept=median(Tau.estimates[[i]])), color="black", linetype="dashed", lwd=1.2)
 
 
 ##All local community
@@ -312,12 +312,12 @@ Kip.Param.Est <- abc(target = stats[c(4, 10, 12, 13, 16, 18, 19, 20)], param =OU
 pdf('AllLocalCom_KipukaTauEst.pdf', width=5, height=4)
 tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
                       tau = c(as.numeric(paste(OU.filtering.data$params[,10])),  as.numeric(paste(Kip.Param.Est$unadj.values[,10]))))
-                                    
-ggplot(tau.pp, aes(x=tau, fill=dt)) + 
-  geom_density() + 
+
+ggplot(tau.pp, aes(x=tau, fill=dt)) +
+  geom_density() +
   scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
   theme(legend.position="none") +
-  geom_vline(aes(xintercept=median(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))), color="black", linetype="dashed", lwd=1.2) 
+  geom_vline(aes(xintercept=median(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))), color="black", linetype="dashed", lwd=1.2)
 
 
 ```
@@ -372,5 +372,3 @@ tm_shape(usa) +
 
 
 ```
- 
- 
