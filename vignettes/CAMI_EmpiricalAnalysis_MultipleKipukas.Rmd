@@ -46,6 +46,8 @@ sum(colSums(Kip.communtiy.matrix) >= 18)
 ## We will look 8 of the communities that have 18+ species
 Kip.Coms <- Kip.communtiy.matrix[,colSums(Kip.communtiy.matrix) >= 18]
 
+write.table(Kip.Coms, file="8KipukaComsMatrix.txt", sep="\t")
+
 for (i in 1:ncol(Kip.Coms)) {
   species.list <- rownames(Kip.communtiy.matrix)[Kip.Coms[,i]==1]
   local.tree <- drop.tip(Kip.regional.tree, setdiff(Kip.regional.tree$tip.label, species.list))
@@ -96,7 +98,7 @@ We can use the function **CalcSummaryStats()** from the CAMI R package to calcul
 
 ```{r message=FALSE, results="hide"}
 ## Calculate summary statistics for CAMI
-Kip.summary.stats <- matrix(NA, 8, 30)
+Kip.summary.stats <- matrix(NA, 9, 30)
 for (i in 1:ncol(Kip.Coms)){
   stats<-  CalcSummaryStats(regional.tree = Kip.regional.tree,
                                       local.tree = kip.local.trees[[i]],
@@ -105,6 +107,14 @@ for (i in 1:ncol(Kip.Coms)){
   Kip.summary.stats[i,] <- stats
   colnames(Kip.summary.stats) <- names(stats)
 }
+
+
+
+   Kip.summary.stats[9,]<-  CalcSummaryStats(regional.tree = Kip.regional.tree,
+                                      local.tree = Kip.local.tree,
+                                      regional.traits = log(Kip.regional.traits),
+                                      local.traits = log(Kip.local.traits))
+
 
 ## Calculate dispersion stats
 Kip.dispersion.stats <- matrix(NA, 8, 32)
@@ -122,6 +132,13 @@ phy.table <- Kip.dispersion.stats[,c(2,3,4,7,10,11,12,15)]
 write.csv(phy.table, file="PhyDispTable8KipukaComs.csv")
 phen.table <- Kip.dispersion.stats[,c(18,19,20,23, 26,27,28,31)]
 write.csv(phen.table, file="PhenDispTable8KipukaComs.csv")
+
+
+  stats<-  CalcPhyDispStats(regional.tree = Kip.regional.tree,
+                                      local.tree = Kip.local.tree,
+                                      regional.traits = log(Kip.regional.traits),
+                                      local.traits = log(Kip.local.traits))
+
 ```
 
 #### Simulate Community Assembly data
@@ -213,15 +230,15 @@ cv.emp.ou <- cv4postpr(mod.index.ou, sum.stats.ou[,c(4, 10, 12, 13, 16, 18, 19, 
 
 #determine posterior model probabilities for empirical data using all data
 ABC.all.summary <- list()
-for (i in 1:ncol(Kip.Coms)){
+for (i in 1:9){
 abc.emp.all <- postpr(target = Kip.summary.stats.abc[i,], index = mod.index.all, 
                      sumstat = sum.stats.all[, c(4, 10, 12, 13, 16, 18, 19, 20)], 
                      tol = 0.002, method="rejection")
 ABC.all.summary[[i]] <- summary(abc.emp.all)
 }
 
-ABC.all.table <- matrix(NA, 8, 6)
-for (i in 1:ncol(Kip.Coms)){      
+ABC.all.table <- matrix(NA, 9, 6)
+for (i in 1:9){      
   ABC.all.table[i,] <- ABC.all.summary[[i]]$Prob
   colnames(ABC.all.table) <- names(ABC.all.summary[[i]]$Prob)
 }
@@ -287,6 +304,22 @@ ggplot(tau.pp, aes(x=tau, fill=dt)) +
   scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
   theme(legend.position="none") +
   geom_vline(aes(xintercept=median(Tau.estimates[[i]])), color="black", linetype="dashed", lwd=1.2) 
+
+
+##All local community
+Kip.Param.Est <- abc(target = stats[c(4, 10, 12, 13, 16, 18, 19, 20)], param =OU.filtering.data$params, sumstat = OU.filtering.data$summary.stats[,c(4, 10, 12, 13, 16, 18, 19, 20)], tol = 0.01, method="rejection")
+
+pdf('AllLocalCom_KipukaTauEst.pdf', width=5, height=4)
+tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(OU.filtering.data$params)), rep("posterior", each= nrow(Kip.Param.Est$unadj.values)))),
+                      tau = c(as.numeric(paste(OU.filtering.data$params[,10])),  as.numeric(paste(Kip.Param.Est$unadj.values[,10]))))
+                                    
+ggplot(tau.pp, aes(x=tau, fill=dt)) + 
+  geom_density() + 
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(as.numeric(paste(Kip.Param.Est$unadj.values[,10])))), color="black", linetype="dashed", lwd=1.2) 
+
+
 ```
 
 ```{r}
@@ -295,11 +328,15 @@ for (i in 1:8) {
   median.taus <- c(median.taus, median(Tau.estimates[[i]]))
 }
 
-ParamEstDataTable <- cbind(seq(1,8), vote.ou[,2], ABC.ou.table[,2], median.taus)
+
+ParamEstDataTable <- cbind(seq(1,8), vote.ou[1:8,2], ABC.ou.table[,2], median.taus)
+rownames(ParamEstDataTable) <- colnames(Kip.Coms)
 colnames(ParamEstDataTable) <-c("kipuka","RF prob", "ABC prob",  "median.tau")
 ParamEstDataTable <- ParamEstDataTable[order(ParamEstDataTable[,4]),]
 
 write.csv(ParamEstDataTable, file="ParamEstTable_RF&ABC_8Kipukas.csv")
+
+
 
 ## Makes Figure
 pdf('ModProb_V_TauEst_8Kipukas.pdf', width=6, height=4.5)
@@ -310,4 +347,30 @@ abline(lm(ParamEstDataTable[,2] ~ ParamEstDataTable[,4]), lwd=1.5, lty=1, col="b
 legend("topright", legend = c("ABC", "RF"), pch=c(22, 16), col=c("black", "black"), lty=c(5,1), cex=1.5, pt.bg=c("grey80", "black"), pt.cex=c(1.8, 1.5), lwd=c(1.2,1.5), seg.len=4, bty="n")
 ```
 
+Now Let's see where these Kipuka occur on a map.
+
+```{r}
+
+colnames(Kip.communtiy.matrix)
+colnames(Kip.Coms)
+
+setwd("/Users/Megan/Documents/")
+LatLongData <- read.csv(file="8Kipuka_LatLongs.txt", sep="\t", header=T)
+
+library(maps)
+library(mapdata)
+library(mapproj)
+map(database= "state", ylim=c(45,70), xlim=c(-150,-100), col="grey80", fill=TRUE, projection="gilbert", orientation= c(90,0,225))
+data <- read.csv("/Users/Megan/Documents/InlandLocals_ForDan.txt", sep = "\t", header=T)
+
+install.packages("sf")
+library(tmap)
+library(sf)
+
+tm_shape(usa) +
+  tm_fill()
+
+
+```
+ 
  
