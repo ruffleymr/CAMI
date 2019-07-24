@@ -42,8 +42,8 @@ SimCommunityAssembly <- function(sims, N, local,
          call. = F)
   if (missing(comsim))
     stop("'comsim' is missing with no default", call. = F)
-  if (!any(comsim == c("neutral", "filtering", "competition")))
-    stop("Method must be 'neutral', 'filtering', or 'competition'.",
+  if (!any(comsim == c("all", "neutral", "filtering", "competition")))
+    stop("Method must be 'all', 'neutral', 'filtering', or 'competition'.",
          call. = F)
 
   ##empty vectors declared to hold info that will be output
@@ -142,6 +142,14 @@ SimCommunityAssembly <- function(sims, N, local,
     if (length(N) > 1){
       N.drawn <- runif(1, N[1], N[2])
     }else {N.drawn <- N}
+    #drawn comsim if "all"
+    comSwitch <- 0
+    if (comsim == "all"){
+      index <- round(runif(1,.5,3.5))
+      modnames <- c("neutral", "filtering", "competition")
+      comsim <-  modnames[index]
+      comSwitch <- 1
+    }
     #draw lambda
     if (length(lambda) > 1){
       lambda.drawn <- runif(1, lambda[1], lambda[2])
@@ -260,6 +268,11 @@ SimCommunityAssembly <- function(sims, N, local,
       Sys.sleep(.1)
       # update progress bar
       setTxtProgressBar(pb, i)
+    }
+
+    ##switch comsim back to all, if it was switched before
+    if (comSwitch == 1){
+      comsim <- "all"
     }
 
   }
