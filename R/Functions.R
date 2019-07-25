@@ -142,6 +142,10 @@ SimCommunityAssembly <- function(sims, N, local,
     if (length(N) > 1){
       N.drawn <- runif(1, N[1], N[2])
     }else {N.drawn <- N}
+    #drawn N if prior
+    if (length(N) > 1){
+      N.drawn <- runif(1, N[1], N[2])
+    }else {N.drawn <- N}
     #drawn comsim if "all"
     comSwitch <- 0
     if (comsim == "all"){
@@ -172,7 +176,7 @@ SimCommunityAssembly <- function(sims, N, local,
     } else {tau.drawn <- tau}
     #set local community size
     if (length(local) > 1){
-      n <- N.drawn * runif(1, local[1], local[2])
+      n <- round(runif(1, local[1], local[2]))
     }else{
       if (as.integer(local) != 0){
         n <- local
