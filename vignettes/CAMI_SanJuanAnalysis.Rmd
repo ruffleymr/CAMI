@@ -24,7 +24,7 @@ We advocate that using CAMI is an alternative to statistical hypothesis testing,
 
 Below, we go through analysizing Marx et al.'s (2015) data in CAMI. 
 
-### 2. Import Data
+### 2. Importing Data
 
 #### 2.1 Phylogenetic 
 
@@ -53,6 +53,9 @@ communityMatrix <- read.csv(file="CommunityDataMatrix.csv", sep=",", header=T, r
 
 ## we can look at the first 5 rows with head, and distinguish only the first 5 columns with [] indexing brackets.
 head(communityMatrix[,1:4])
+
+## also can load some island Metadata
+metadata <- read.csv(file="IslandMetadata.txt", header = T, sep = ",", row.names = 1)
 ```
 
 
@@ -72,46 +75,277 @@ colSums(is.na(traitData))
 ```
 
 
-### 3. Simulation Community Assembly
+### 3. Community Assembly Simulations
 
 #### 3.1 Trait Evolution Model
 
 We will investigate seed mass (mg) as our functional trait of interest, first. For this we need to see what model of trait evolution seed mass fits, given the species that we have data for in the community. We will be comparing two models of trait evolution, Brownian Motion and Ornstein-Uhlenbeck. If we can determine the best model of trait evolution to simulate under, then we can cut the number of models we would need to simulate under in CAMI in half.
 
+
+#### pick a trait here
+
 ```{r, message=FALSE}
-## get seed mass info for all species in the San Juan Tree
-SeedMass <- traitData$Seed.Mass..mg.
-names(SeedMass) <- rownames(traitData)
-SeedMass <- SeedMass[names(SeedMass) %in% SanJuanTree$tip.label]
+## PICK THE TRAIT HERE
+TraitVec <- traitData$Maximum.Height..m.
+names(TraitVec) <- rownames(traitData)
+TraitVec <- TraitVec[names(TraitVec) %in% SanJuanTree$tip.label]
 
 ## remove species from tree when there is missing trait data
-missingSpecies <- names(SeedMass)[is.na(SeedMass)]
-seedMassTree <- drop.tip(phy = SanJuanTree, tip = missingSpecies)
-seedMassTree <- drop.tip(phy = seedMassTree, tip = "Arctostaphylos_media")
+missingSpecies <- names(TraitVec)[is.na(TraitVec)]
+RegTraitTree <- drop.tip(phy = SanJuanTree, tip = missingSpecies)
+RegTraitTree <- drop.tip(phy = RegTraitTree, tip = "Arctostaphylos_media")
 
 ## remove species from trait data if missing 
-SeedMass <- SeedMass[!is.na(SeedMass)]
+TraitVec <- TraitVec[!is.na(TraitVec)]
 
 ## check the new tree and trait data objects to make sure they match with name.check()
-name.check(seedMassTree, SeedMass)
+name.check(RegTraitTree, TraitVec)
+
 ```
 
 Now that the data is somewhat curated, we will figure out which model of trait evolution best fits the seed mass data given the phylogeny and trait values. We will use the *fitConintuous()* function from **geiger** to fit both the BM and OU models of trait evoluton to the data. We will perform model selection using AIC, meaning the model with the lower AIC will be the model we simulate data under.
 
-```{r}
-BM.mod <- fitContinuous(phy = seedMassTree, dat = log(SeedMass), model = "BM", control=list(niter=1000))
-OU.mod <- fitContinuous(phy = seedMassTree, dat = log(SeedMass), model = "OU", bounds=list(alpha=c(0.001, 0.02)), control=list(niter=1000))
+```{r, cache=TRUE}
+## if trait is seed mass, you mgiht want to do this bc these two species' seed mass is super large
+RegTraitTree <- drop.tip(RegTraitTree, "Quercus_garryana")
+TraitVec <- TraitVec[names(TraitVec) != "Quercus_garryana"]
+RegTraitTree <- drop.tip(RegTraitTree, "Corylus_cornuta")
+TraitVec <- TraitVec[names(TraitVec) != "Corylus_cornuta"]
 
+hist(TraitVec)
+#RegTraitTree, TraitVec
+BM.mod <- fitContinuous(phy = RegTraitTree, dat = log10(TraitVec)*10, model = "BM", control=list(niter=100))
+OU.mod <- fitContinuous(phy = RegTraitTree, dat = log10(TraitVec)*10, model = "OU", bounds=list(alpha=c(0.001, 0.02)), control=list(niter=100))
+
+summary(TraitVec)
 ## you can use '$opt' after the objects to   at the lnL estimated for each model, as well as the AICc calculated.
 c(BM.mod$opt$aicc, OU.mod$opt$aicc) - min(BM.mod$opt$aicc, OU.mod$opt$aicc)
 ```
 
 
-#### 3.2 Simulate Assembly
+#### 3.2 Simulate Assembly data
+
+```{r eval=FALSE, message=FALSE, results='hide'}
+sims <- 1000
+N <- length(RegTraitTree$tip.label)
+local <- c(25,150)
+
+require("CAMI")
+#simulate data on crick under emp sims screen
+AssemblyData <- SimCommunityAssembly(sims, N, local, 
+                                       traitsim = "OU", 
+                                       comsim = "competition", 
+                                       sig2 = OU.mod$opt$sigsq, 
+                                       alpha = OU.mod$opt$alpha, 
+                                       tau=c(1,60))
+
+
+#AssemblyData_SLA <- AssemblyData
+load(file="OUAssemblyData.Rdata")
+AssemblyData <- OUassemblyData
+````
+
+
+#### 3.3 Summary Statistics
 
 ```{r}
 
+SanJuanCommunities <- communityMatrix[,colSums(communityMatrix) >= 20]
+SanJuanCommunities <- SanJuanCommunities[,-1]
+SanJuanCommunities <- SanJuanCommunities[rownames(SanJuanCommunities) %in%  names(TraitVec),]
+
+
+for (i in 1:ncol(SanJuanCommunities)) {
+  species.to.drop <- rownames(SanJuanCommunities)[SanJuanCommunities[,i]==0]
+  local.tree <- drop.tip(RegTraitTree, species.to.drop)
+  if (i == 1){
+    SanJuanLocalTrees <- local.tree }
+  else{  SanJuanLocalTrees <- c(SanJuanLocalTrees, local.tree)
+}}
+
+localcomsizes <- c()
+for (i in 1:ncol(SanJuanCommunities)) {
+  c <- length(SanJuanLocalTrees[[i]]$tip.label)
+  localcomsizes <- c(localcomsizes, c)
+}  
+
+range(localcomsizes)
+
+## Get corresponding trait datasets
+SJlocalTraits <- list()
+for (i in 1:ncol(SanJuanCommunities)) {
+ local.traits <- TraitVec[ match(SanJuanLocalTrees[[i]]$tip.label, names(TraitVec))]
+ SJlocalTraits[[i]] <- local.traits
+}
+
+## calculate summary statistics
+SJsummaryStats <- matrix(NA, ncol(SanJuanCommunities), 30)
+for (i in 1:ncol(SanJuanCommunities)){
+  stats<-  CalcSummaryStats(regional.tree = RegTraitTree,
+                                      local.tree = SanJuanLocalTrees[[i]],
+                                      regional.traits = log10(TraitVec),
+                                      local.traits = log10(SJlocalTraits[[i]]))
+  SJsummaryStats[i,] <- stats
+  colnames(SJsummaryStats) <- names(stats)
+}
+rownames(SJsummaryStats) <- colnames(SanJuanCommunities)
+
+```
+
+### 4. Random Forests
+
+```{r}
+modelIndex <- c()
+modelIndex <- as.character(AssemblyData$params[,2])
+summaryStats <- AssemblyData$summary.stats
+ref.table <- c()
+ref.table <- data.frame(summaryStats[,-c(17,18,21,22,29)], modelIndex)
+ref.table <- na.omit(object = ref.table)
+
+#determine rf error rates using all data
+#require(randomForest)
+rf <- randomForest(modelIndex ~., data=ref.table, ntree=1000, importance=T)
+
+SJModPredictions <- predict(rf, SJsummaryStats[,-c(17,18,21,22,29)], type="vote")
+colSums(SJModPredictions)
+
+#create color palette:
+library(RColorBrewer)
+coul = brewer.pal(5, "Set2") 
+ 
+t(SJModPredictions)
+
+# Make a stacked barplot--> it will be in %!
+pdf(file = "seedMass_barplotSanJan.pdf", width = 5, height = 4)
+barplot(t(SJModPredictions), col=coul , border="white", xlab="San Juan Communities" )
+#legend("top", legend = c("competition", "filtering", "neutral"), fill = coul, cex=2)
+
+
+```
+
+#### Random Forest with parameter estimates
+
+```{r}
+##might be good to look at some params.
+require(ggplot2)
+trues <- AssemblyData$params[,2]=="competition"
+TauIndex <- as.numeric(paste(AssemblyData$params[trues,10])) 
+
+summaryStatsTau <- AssemblyData$summary.stats[trues,-c(17,18,21,22,29)]
+ref.table.Regress <- data.frame(summaryStatsTau, TauIndex)
+ref.table.Regress <- na.omit(object = ref.table.Regress)
+rf.param <- randomForest(TauIndex ~., data=ref.table.Regress, ntree=1000, importance=T)
+
+SJParamPredictions <- predict(rf.param, SJsummaryStats[,-c(17,18,21,22,29)], type="response")
+hist(SJParamPredictions)
+
+##make plot
+pdf('Heigt_Competiton_SanJuanParam.pdf', width=5, height=4)
+tau.pp <- data.frame(dt=factor(c(rep("prior", each=nrow(AssemblyData$params)), 
+                                 rep("posterior", each= length(SJParamPredictions)))),
+                     tau = c(as.numeric(paste(AssemblyData$params[trues,10])),  SJParamPredictions))
+
+ggplot(tau.pp, aes(x=tau, fill=dt)) +
+  geom_density() +
+  scale_fill_manual(values=c(rgb(.2, .2, .2, .8), rgb(.5, .5, .5, .4))) +
+  theme(legend.position="none") +
+  geom_vline(aes(xintercept=median(SJParamPredictions)), color="black", linetype="dashed", lwd=1.2)
+
+```
 
 
 
-````
+```{r}
+SJModPredictions <- SJModPredictions[-c(22,27),]
+SJParamPredictions <- SJParamPredictions[-c(22,27)]
+SJ_metadata <- SJ_metadata[-c(22,27),]
+
+plot(SJParamPredictions~ SJ_metadata[,1])
+lm(SJParamPredictions~ SJ_metadata[,1])
+plot(SJModPredictions[,2]~ SJParamPredictions[])
+
+plot(SJModPredictions[,2] ~ SJ_metadata[,1])
+
+## This is what I will plot and talk about
+plot(SJModPredictions[,2] ~ SJ_metadata[,1])
+abline(lm(SJModPredictions[,2] ~ SJ_metadata[,1]))
+
+plot(SJParamPredictions~ SJ_metadata[,1], xlim=c(0,50000))
+abline(lm(SJParamPredictions ~ SJ_metadata[,1]))
+
+
+colnames(SJ_metadata)
+
+pdf('ModProb_V_TauEst_8Kipukas.pdf', width=6, height=4.5)
+plot(SJModPredictions[,2] ~ SJ_metadata[,1], pch=21, cex=1.8, ylab="Model Support for Environmental Filtering", xlab="T_E Median Estimate", bty="l", bg="grey80")
+abline(lm(SJModPredictions[,2] ~ SJ_metadata[,1]), lwd=1.5, lty=5, col="grey40")
+
+```
+
+#### ABC
+
+```{r}
+require(ggplot2)
+Tau.estimates <- list()
+trues <- OUassemblyData$params[,2]=="filtering"
+
+TauParams <- OUassemblyData$params[trues,5:10]
+SJsummaryStats.ABC <- SJsummaryStats[, c(4, 10, 12, 13, 16, 18, 19, 20)]
+
+for (i in 1:ncol(SanJuanCommunities)){
+  SJ.Param.Est <- abc(target = SJsummaryStats.ABC[i,], 
+                      param = TauParams, 
+                      sumstat = summaryStatsTau[,c(4, 10, 12, 13, 16, 18, 19, 20)], tol = 0.01, method="rejection")
+
+  tau <- as.numeric(paste(SJ.Param.Est$unadj.values[,colnames(SJ.Param.Est$unadj.values) == "tau"]))
+
+  Tau.estimates[[i]] <- tau
+}
+
+median.taus <- c()
+for (i in 1:ncol(SanJuanCommunities)) {
+  median.taus <- c(median.taus, median(Tau.estimates[[i]]))
+}
+
+plot(SJModPredictions[,2]~ median.taus)
+
+islands <- colnames(SanJuanCommunities)
+
+SJ_metadata <- metadata[match(islands, rownames(metadata)),]
+colnames(SJ_metadata)
+
+SJModPredictions <- SJModPredictions[-c(22,27),]
+SJ_metadata <- SJ_metadata[-c(22,27),]
+median.taus <- median.taus[-c(22,27)]
+
+plot(SJModPredictions[,2]~ SJ_metadata[,1])
+
+which(SJ_metadata[,3] >= 40 & SJ_metadata[,3] <= 60)
+
+plot(median.taus ~ SJ_metadata[,1])
+
+hist(SJ_metadata[,3])
+
+which(SJ_metadata[,1] > 300000)
+
+
+SJModPredictions_2 <- SJModPredictions[which(SJ_metadata[,3] >= 40 & SJ_metadata[,3] <= 60),]
+SJ_metadata_2 <- SJ_metadata[which(SJ_metadata[,3] >= 40 & SJ_metadata[,3] <= 60),]
+median.taus_2 <- median.taus[which(SJ_metadata[,3] >= 40 & SJ_metadata[,3] <= 60)]
+
+plot(median.taus_2 ~ SJ_metadata_2[,1])
+plot(SJModPredictions_2[,2] ~ SJ_metadata_2[,1])
+
+plot(SJModPredictions_2[,2] ~ median.taus_2)
+
+
+pdf('ModProb_V_TauEst_8Kipukas.pdf', width=6, height=4.5)
+plot(ParamEstDataTable[,3] ~ ParamEstDataTable[,4], pch=22, cex=1.8, ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate", bty="l", bg="grey80")
+abline(lm(ParamEstDataTable[,3] ~ ParamEstDataTable[,4]), lwd=1.5, lty=5, col="grey40")
+points(ParamEstDataTable[,2] ~ ParamEstDataTable[,4], pch=16, cex=1.5, ylab="Model Support for Environmental Filtering", xlab="Tau Median Estimate")
+abline(lm(ParamEstDataTable[,2] ~ ParamEstDataTable[,4]), lwd=1.5, lty=1, col="black")
+legend("topright", legend = c("ABC", "RF"), pch=c(22, 16), col=c("black", "black"), lty=c(5,1), cex=1.5, pt.bg=c("grey80", "black"), pt.cex=c(1.8, 1.5), lwd=c(1.2,1.5), seg.len=4, bty="n")
+
+
+
+```

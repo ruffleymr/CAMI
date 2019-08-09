@@ -98,7 +98,7 @@ We can use the function **CalcSummaryStats()** from the CAMI R package to calcul
 
 ```{r message=FALSE, results="hide"}
 ## Calculate summary statistics for CAMI
-Kip.summary.stats <- matrix(NA, 9, 30)
+Kip.summary.stats <- matrix(NA, 8, 30)
 for (i in 1:ncol(Kip.Coms)){
   stats<-  CalcSummaryStats(regional.tree = Kip.regional.tree,
                                       local.tree = kip.local.trees[[i]],
@@ -201,12 +201,12 @@ colSums(vote.all)
 ##combine summary stats and model index into 1 data frame for RF and ABC; OU MODELS ONLY
 sum.stats.ou <- rbind(OU.neutral.data$summary.stats[1:10000,], OU.filtering.data$summary.stats[1:10000,], OU.competition.data$summary.stats[1:10000,])
 mod.index.ou <- rep(c("neut", "filt", "comp"), each=10000)
-ref.table.ou <- na.omit(data.frame(sum.stats.ou, mod.index.ou))
+ref.table.ou <- na.omit(data.frame(sum.stats.ou-c(17,18,21,22,29)], mod.index.ou))
 
 #determine rf error rates using OU data
 rf.emp.ou <- randomForest(mod.index.ou ~., data=ref.table.ou, ntree=1000, importance=T)
 
-vote.ou <- predict(rf.emp.ou, Kip.summary.stats, type="prob")
+vote.ou <- predict(rf.emp.ou, Kip.summary.stats-c(17,18,21,22,29)], type="prob")
 colSums(vote.ou)
 
 varImpPlot(rf.emp.ou)
@@ -215,7 +215,17 @@ varImpPlot(rf.emp.ou)
 write.csv(vote.all, file="RF_allMods_Table8KipukaComs.csv")
 write.csv(vote.ou, file="RF_OUMods_Table8KipukaComs.csv")
 
+getwd()
+vote.ou <- read.csv(file="RF_OUMods_Table8KipukaComs.csv", row.names = 1)
+t(vote.ou)
 
+library(RColorBrewer)
+coul = brewer.pal(5, "Set2") 
+ 
+
+pdf(file = "legend.pdf", width = 5, height = 4)
+barplot(t(vote.ou), col=coul , border="white", xlab="Kipuka Communities" )
+legend("top", legend = c("competition", "filtering", "neutral"), fill = coul, cex=2, bg="white")
 
 
 
