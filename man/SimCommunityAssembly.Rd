@@ -18,9 +18,9 @@ SimCommunityAssembly(sims, N, local, traitsim, comsim, disable.bar = FALSE,
 
 \item{traitsim:}{either 'BM' or 'OU'}
 
-\item{comsim:}{either "netural", "filtering", "competition"}
+\item{comsim:}{either "netural", "filtering", "competition", "all"}
 
-\item{lambda:}{speciation rate, can be single number or prior range, default is a unifrom prior between 0.5 and 2.0}
+\item{lambda:}{speciation rate, can be single number or prior range, default is a uniform prior between 0.5 and 2.0}
 
 \item{eps:}{the extinction fraction, extinction (mu) = lambda * eps, default is a uniform prior between 0.2 and 0.8}
 
@@ -28,13 +28,12 @@ SimCommunityAssembly(sims, N, local, traitsim, comsim, disable.bar = FALSE,
 
 \item{alpha:}{pull to trait optimum, defualt is a uniform prior range between 0.01 and 0.2}
 
-\item{tau:}{stregnth of the community assembly model, default is a uniform prior range between 5.0 and 5.0}
+\item{tau:}{stregnth of the community assembly model, default is a uniform prior range between 1.0 and 5.0}
 }
 \value{
-output is a list of two matrices, one containing all parameter values for each simulation, and the other containing all 
+A list of two matrices, one containing all parameter values for each simulation, and the other containing all 
         summary statistics. In both matrices, each row corresponds to one simulation
 }
 \description{
 SimCommunityAssembly
 }
-
