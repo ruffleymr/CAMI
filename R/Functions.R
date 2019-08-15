@@ -1,17 +1,17 @@
-#' SimCommunityAssembly
+#' This function simulates phylogenetic and phenotypic community assembly data in a species-based model. First, a regional community phylogeny is simulated under a constant birth-death process. Trait evolution is then modeled along this phylogeny. Once the regional community pool exists, the species are assembled into local communities under one of three assembly models: neutral, habitat filtering, and competitive exclusion.
 #'
 #' @param sims: The number of simulations; sims
-#' @param N: The size of the regional communities, can be a single number or a prior range
-#' @param local: size of the local communities, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions
-#' @param traitsim: either 'BM' or 'OU'
-#' @param comsim: either "netural", "filtering", "competition"
-#' @param lambda: speciation rate, can be single number or prior range, default is a unifrom prior between 0.5 and 2.0
+#' @param N: The size of the regional community, can be a single number or a prior range
+#' @param local: size of the local community, can be a single number, a proportion of the regional pool (btw 0 and 1), or a prior range of proportions
+#' @param traitsim: Brownian Motion as 'BM' or Ornstein-Uhlenbeck as 'OU'
+#' @param comsim: "neutral", "filtering", "competition", "all"
+#' @param lambda: speciation rate, can be single number or prior range, default is a uniform prior between 0.5 and 2.0
 #' @param eps: the extinction fraction, extinction (mu) = lambda * eps, default is a uniform prior between 0.2 and 0.8
-#' @param sig2: rate of character change, can be single value or prior range, defualt is a unifom prior range between 1.0 and 10.0
-#' @param alpha: pull to trait optimum, defualt is a uniform prior range between 0.01 and 0.2
-#' @param tau: stregnth of the community assembly model, default is a uniform prior range between 5.0 and 5.0
+#' @param sig2: rate of character change, can be single value or prior range, default is a uniform prior range between 1.0 and 5.0
+#' @param alpha: pull to trait optimum, default is a uniform prior range between 0.01 and 0.2
+#' @param tau: strength of the community assembly process, default is a uniform prior range between 1.0 and 30.0
 #'
-#' @return output is a list of two matrices, one containing all parameter values for each simulation, and the other containing all
+#' @return A list of two matrices, one containing all parameter values for each simulation, and the other containing all
 #'         summary statistics. In both matrices, each row corresponds to one simulation
 #' @export
 #'
@@ -24,9 +24,9 @@ SimCommunityAssembly <- function(sims, N, local,
                                  output.phydisp.stats = FALSE,
                                  lambda = c(0.05, 2.0),
                                  eps = c(0.2, 0.8),
-                                 sig2 = c(1, 10),
+                                 sig2 = c(1, 5),
                                  alpha = c(0.01, 0.2),
-                                 tau = c(1, 60)) {
+                                 tau = c(1, 30)) {
 
   #check all parameters and reply with error message if any incomplete
   if (missing(sims))
