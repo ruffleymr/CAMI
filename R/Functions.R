@@ -47,7 +47,8 @@ SimCommunityAssembly <- function(sims, N, local,
          call. = F)
 
   ##empty vectors declared to hold info that will be output
-  params <- matrix(NA, sims, 12)
+  ## changed to 10
+  params <- matrix(NA, sims, 10)
   colnames(params) <- c("sim#",       #1
                         "comsim",     #2
                         "traitsim",   #3
@@ -57,9 +58,23 @@ SimCommunityAssembly <- function(sims, N, local,
                         "mu",         #7
                         "sig2",       #8
                         "alpha",      #9
-                        "tau",        #10
-                        "avg.Pa",     #11
-                        "avg.rej")    #12
+                        "tau")        #10
+                        #"avg.Pa",     #11 cut out 8-16
+                        #"avg.rej")    #12 cut out
+
+  params <- data.frame(sim=integer(),
+                   comsim=character(),
+                   traitsim=character(),
+                   N=integer(),
+                   local=integer(),
+                   lambda=double(),
+                   mu=double(),
+                   sig2=double(),
+                   alpha=double(),
+                   tau=double(),
+                   stringsAsFactors=FALSE)
+
+
 
   if (output.sum.stats == TRUE) {
     summary.stats <- matrix(NA, nrow = sims, 30)
@@ -144,7 +159,7 @@ SimCommunityAssembly <- function(sims, N, local,
     }else {N.drawn <- N}
     #drawn N if prior
     if (length(N) > 1){
-      N.drawn <- runif(1, N[1], N[2])
+      N.drawn <- round(runif(1, N[1], N[2]))
     }else {N.drawn <- N}
     #drawn comsim if "all"
     comSwitch <- 0
@@ -156,23 +171,23 @@ SimCommunityAssembly <- function(sims, N, local,
     }
     #draw lambda
     if (length(lambda) > 1){
-      lambda.drawn <- runif(1, lambda[1], lambda[2])
+      lambda.drawn <- round(runif(1, lambda[1], lambda[2]), digits=4)
     }else {lambda.drawn <- lambda}
     #draw eps
     if (length(eps) > 1){
-      eps.drawn <- runif(1, eps[1], eps[2])
+      eps.drawn <- round(runif(1, eps[1], eps[2]), digits=4)
     }else {eps.drawn <- eps}
     #draw sig2
     if (length(sig2) > 1){
-      sig2.drawn <- runif(1, sig2[1], sig2[2])
+      sig2.drawn <- round(runif(1, sig2[1], sig2[2]), digits=4)
     } else {sig2.drawn <-  sig2}
     #draw alpha
     if (length(alpha) > 1) {
-      alpha.drawn <- runif(1, alpha[1], alpha[2])
+      alpha.drawn <- round(runif(1, alpha[1], alpha[2]), digits=4)
     } else {alpha.drawn <- alpha}
     #draw tau
     if (length(tau) > 1){
-      tau.drawn <- runif(1, tau[1], tau[2])
+      tau.drawn <- round(runif(1, tau[1], tau[2]), digits=4)
     } else {tau.drawn <- tau}
     #set local community size
     if (length(local) > 1){
@@ -186,7 +201,7 @@ SimCommunityAssembly <- function(sims, N, local,
     }
 
     #Simulate Regional Community
-    mu <- lambda.drawn*eps.drawn
+    mu <- round(lambda.drawn*eps.drawn, digits = 4)
     regional.tree <- TreeSim::sim.bd.taxa(n=N.drawn, numbsim=1, lambda=lambda.drawn, mu=mu, complete=FALSE)[[1]]
 
     #Simulate Regional Traits
@@ -258,7 +273,18 @@ SimCommunityAssembly <- function(sims, N, local,
     #local.tree <- keep.tip(regional.tree, names(local.traits))
 
     #Store all parameters for each simulation and data produced
-    params[i, ] <- c(i, comsim, traitsim, N.drawn, length(local.traits), lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
+    #params[i, ] <- c(i, comsim, traitsim, N.drawn, length(local.traits), lambda.drawn, mu, sig2.drawn, alpha.drawn, tau.drawn, mean(probs), rej)
+    ## removed avg.Pa and avg.rej from param files stored.
+    params[i,1:3 ] <- c(i, comsim, traitsim)
+
+    params[i,4:10 ] <- c(as.numeric(paste(N.drawn)),
+                     as.numeric(paste(length(local.traits))),
+                     as.numeric(paste(lambda.drawn)),
+                     as.numeric(paste(mu)),
+                     as.numeric(paste(sig2.drawn)),
+                     as.numeric(paste(alpha.drawn)),
+                     as.numeric(paste(tau.drawn)))
+
 
     ##calculate all summary statistics
     if (output.sum.stats == TRUE){
