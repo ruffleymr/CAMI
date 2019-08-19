@@ -14,11 +14,13 @@ vignette: >
 We will begin by installing **devtools**. Devtools is an R package that enables the development of other R packages. You can use devtools to install a package that is managed in a github repository. We will install CAMI this way. 
 
 ```{r message=FALSE}
-#install.packages("devtools")
+## install devtools if you do not already have it
+install.packages("devtools")
 require(devtools)
+
+## install CAMI from github using devtools
 devtools::install_github("ruffleymr/CAMI")
 require("CAMI")
-
 ```
 
 ### Simulation of Data
