@@ -22,15 +22,15 @@ Imports:
     phyloTop,
     phytools,
     picante,
-    TreeSim,
-    randomForest,
-    abc,
-    ggplot2
+    TreeSim
 License:
 Encoding:
 LazyData: true
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    randomForest,
+    abc,
+    ggplot2
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
