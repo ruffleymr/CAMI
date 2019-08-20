@@ -1,50 +1,61 @@
 ---
-title: "CAMI tutorial"
-author: "Megan Ruffley"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{CAMI tutorial}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+title: "Community Assembly Model Inference"
+author: "M. Ruffley"
+date: "17-August-2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
 ---
-## Community Assembly Model Inference
-
-### Installation
+```{r setup, include=FALSE}
+library(devtools)
+library(CAMI)
+```
+### 1. Installation
 We will begin by installing **devtools**. Devtools is an R package that enables the development of other R packages. You can use devtools to install a package that is managed in a github repository. We will install CAMI this way. 
 
-```{r message=FALSE}
-## install devtools if you do not already have it
+```{r message=FALSE, eval=FALSE}
+## install devtools with the line below if you do not already have it
 install.packages("devtools")
-require(devtools)
+library(devtools)
 
-## install CAMI from github using devtools
+## install CAMI from github using devtools with the line below
 devtools::install_github("ruffleymr/CAMI")
-require("CAMI")
+library("CAMI")
 ```
 
-### Simulation of Data
+### 2. Simulation of Data
 
-We will simulate the community assembly data using the function _SimCommunityAssembly_. The function first simulates a regional community phylogeny and traits on that phylogeny. Then, using that information, the local community is assembled by either neutral, habitat filtering, or compeitive exclusion processes. 
+To simulate community assembly data we will be using the `SimCommunityAssembly()` function. This function simulates phylogenetic and phenotypic community assembly data in a species-based model. The function takes several parameters, which can be seen in the help documentation using `?SimCommunityAssembly`. This function can be used to simulate 1 to many community assembly datasets, set using the `sims` argument. 
 
-#####Parameters 
+#### Parameters 
 Before we simulate data, let's go through the parameters of the function. 
 
-- **sims** indicates the number of communities to simulate. No default.
-- **N** is the number of species in the regional community. No default.
-- **local** is the size of the local community, this parameter can be an integer or a proportion. If a proporiton, then the size of the local community will be **N** * **local**. No default.
-- **traitsim** indicates the model of trait evolution to use when simulating traits on the local phylogeny, can be either "BM" (default) for Brownian Motion or "OU" for Ornstein-Uhlenbeck.
-- **comsim** indicates the community assembly model to simulate under, either "netural" (default), "filtering", "competition".
-- **lambda** is the speciate rate of the birth death process used to simulate the regional phylogeny. It can be single number or prior range, the default is a uniform distribution between 0.05 and 2.0.
-- **eps** is the extinction fraction, where extinction (_mu_) = **lambda** * **eps**. The default is a uniform prior distribution between 0.2 and 0.8.
-- **sig2** is rate of character change, this can be single value or prior range. The defualt is a unifom prior distribution between 1.0 and 10.0.
-- **alpha** is the pull to trait optimum, only used when simulate "OU" trait evolution models. The defualt is a uniform prior distribution between 0.01 and 0.2.
-- **tau** is the stregnth of the community assembly model under "filtering" and "competition". The default is a uniform prior distribution between 5.0 and 5.0.
+For a single simulation, first, a regional community phylogeny is simulated under a constant birth-death process. `CAMI` uses the function `sim.bd.taxa` in the R package `TreeSim` (Stadler 2011).
 
-You can also view this information in the help documentation using '?SimCommunityAssembly'
+- `N` determines the size of the regional species pools
+- `lambda` is the speciation rate in species/million years
+- `eps` is the extinction fraction, which is used to calculate the extinction rate from the speciation rate
 
-#####Simulation
-Now we can start simulating data. We will first simulate 1000 communites, where each community is comprised of 100 species in the regional community, half the amount of species in the local community, a "BM" model of trait evolution, and a "neutral" model of community assembly. We will leave all other parameters as their default settings
+Trait evolution is then modeled along this phylogeny under one of two models of trait evolution, Brownian Motion (BM; Felsenstein 1985) and Ornstein-Uhlenbeck (OU; Hansen 1997, Butler & King 2004), determined by the `traitsim` argument. 
+
+- `traitsim` either "BM" or "OU"
+- `sig2` is the instantaneous rate of character change for either model
+- `alpha` controls the strength of pull to the trait optimum and is for OU models only
+
+Once the regional community pool exists, the species are assembled into local communities under one of three assembly models, neutral, habitat filtering, and competitive exclusion, set using the `comsim` argument. The non-neutral assembly models use the phenotypic variation in the regional community and phenotypic matching and repulsion equations, for filtering and competition models respectively, to determine which species will survive in the local community. 
+
+- `comsim` either "neutral", "filtering", "competition", or "all"
+- `tau` controls the strength of the non-neutral assembly processes
+
+For filtering models, the lower `tau` is, the stronger the environmental filter. For competition models, the higher `tau`, the stronger the effects of competition. 
+
+For all of these parameters, a uniform prior distribution of parameter values or a fixed value can be designated. Many of the parameters have default uniform prior distributions, see the help page for details on each parameter.
+
+Again, you can view this information in the help documentation using '?SimCommunityAssembly'
+
+#### SimCommunityAssembly() 
+Now we can start simulating data. We will first simulate 10 communities, where each community is comprised of 100 species in the regional community, half the amount of species in the local community, a "BM" model of trait evolution, and a "neutral" model of community assembly. We will leave all other parameters as their default settings.
 
 ```{r message=FALSE, results='hide'}
 #simulate neutral community assembly data
@@ -53,7 +64,8 @@ Neutral.Sims <- SimCommunityAssembly(sims = 10, N = 100, local = 0.5,
                                  comsim = "neutral")
 
 ```
-We can also simulate under alternative models of community assembly and trait evolution, and add/change prior ranges.
+
+We can also simulate under alternative models of community assembly and trait evolution and add/change prior ranges.
 
 ```{r message=FALSE, results='hide'}
 Filtering.Sims <- SimCommunityAssembly(sims = 10, N = c(100,200), local = 0.5,
@@ -63,19 +75,13 @@ Filtering.Sims <- SimCommunityAssembly(sims = 10, N = c(100,200), local = 0.5,
 
 ```
 
-#####Output
-The output of the function is a list of two matrices. The first matrix is of all _parameters_ and the second matrix contains all _summary.stats_. In both cases, each row in the matrix is a unique simulation and the rows between matrices correspond.
+### 3. Output
+
+The output of the function is a list of two data frames The first matrix is of all _parameters_ and the second matrix contains all _summary.stats_. In both cases, each row in the matrix is a unique simulation and the rows between matrices correspond.
 
 ```{r}
 #two matrices, 'params' and 'summary.stats'
 head(Neutral.Sims$params)
 head(Neutral.Sims$summary.stats)
 
-```
-
-We can also plot the distribution of parameters to ensure we simulated under the correct prior range. 
-
-```{r }
-#For example, the prior distribution for Sig2 was a uniform distribution between 1.0 and 10.0
-hist(as.numeric(Neutral.Sims$params[,8]), breaks=10, main="Sig2", xlab="")
 ```

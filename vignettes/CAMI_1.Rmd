@@ -1,0 +1,346 @@
+---
+title: "Community Assembly Model Inference"
+author: "CompPhylo Workshop"
+date: "26-August-2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    
+#    pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "/Users/Megan/Documents/GitHub/CAMI/")
+library(CAMI)
+library(randomForest)
+```
+
+## CAMI tutorial 1 {-}
+## 1. Introduction 
+
+This exercise is designed to familiarize you with simulating community assembly data in CAMI, the `randomForest` R package, and building a community assembly model classifier.
+
+We have already installed CAMI in the R environment available on Abel, so we will not need to _mess_ with installation today. There are installation [instructions available](https://ruffleymr.github.io/CAMI_Installation.html), if needed for another time though. To work with CAMI on the cluster, we are going to use the same jupyter notebook job we began running this morning. We will begin by logging in to abel using the `ssh` command and your username @ `abel.uio.no`. Once logged-in, make a new directory to hold all the scripts we will create using CAMI.
+
+### a) abel and jupyter notebooks
+
+Check and make sure the jupyter notebook job is still running. Run the code in a terminal connected to abel.
+
+```{r eval=FALSE}
+squeue -u <username>
+```
+
+You should see your the information associated with the job you submitted earlier. If not, [go here](https://compphylo.github.io/Oslo2019/Jupyter_Notebook_Setup.html), for help.
+
+In another terminal on your local device, make sure the ssh tunnel is still running between your local device and the cluster.
+
+```{r eval=FALSE}
+ps -ef | grep ssh | grep abel
+```
+
+If it is running you should see a line with `ssh -N -f -L`. If not, re-connect the ssh tunnel. 
+
+```{r eval=FALSE}
+ssh -N -f -L <my_port_num>:<compute_node>:<my_port_num> <username>@abel.uio.no>
+```
+
+Navigate to `http://localhost:<my_port_#>` on a web broswer. If you don't know the web address, or it is not working for some reason. Back on the cluster, `cat` the `slurm-27933550.out` file (note the number will be different for you) and in here is also the exact link to use in the web browser. 
+
+If you're having issues with any of part of this, see the [troubleshooting documentation](https://compphylo.github.io/Oslo2019/Jupyter_Notebook_Setup.html).
+
+### b) R in jupyter notebooks
+
+Once inside your notebook directory, navigate to the CAMI directory you created earlier. In here, created a new jupyter notebook useing the `new` drop-down list in the upper-right side of the screen. Select a `python 3` notebook. 
+
+To run R through jupyter notebooks, we will use `rpy2`, which is an interface to R running embedded in a Python process (see [more on rpy2](https://rpy2.readthedocs.io/en/version_2.8.x/overview.html)). For R to work in this notebook, the first cell must load rpy2.
+
+```{r eval=FALSE}
+%load_ext rpy2.ipython
+```
+
+And every cell thereafter, must begin with `%%R`, otherwise the code will not be run as R in that chunk and an error will occur. You could also run CAMI in a terminal in jupyter notebooks (select `terminal` in the dropdown menu instead of `python 3`). However, unlike the terminal, jupyter notebooks enables interactive plotting.
+
+Load CAMI and review the available functions along with their help documentation.
+
+```{r, message=FALSE, eval=FALSE}
+%%R
+library(CAMI)
+```
+
+To see the functions available in CAMI, or and R package for that matter, you can use name of the funcion followed by `::` and tab complete. If we do this for CAMI, `CAMI::`, we can see that there are three functions. Use `?` before the name of each function to see the help documentation.
+
+For full instructions on how to install CAMI, see [CAMI installation](https://ruffleymr.github.io/CAMI_Installation.html). 
+
+
+## 2. Simulate Data
+
+To simulate community assembly data we will be using the `SimCommunityAssembly()` function. This function simulates phylogenetic and phenotypic community assembly data in a species-based model. The function takes several parameters, which can be seen in the help documentation using `?SimCommunityAssembly`. This function can be used to simulate 1 to many community assembly datasets, set using the `sims` argument. 
+
+For a single simulation, first, a regional community phylogeny is simulated under a constant birth-death process. `CAMI` uses the function `sim.bd.taxa` in the R package `TreeSim` (Stadler 2011).
+
+- `N` determines the size of the regional species pools
+- `lambda` is the speciation rate in species/million years
+- `eps` is the extinction fraction, which is used to calculate the extinction rate from the speciation rate
+
+Trait evolution is then modeled along this phylogeny under one of two models of trait evolution, Brownian Motion (BM; Felsenstein 1985) and Ornstein-Uhlenbeck (OU; Hansen 1997, Butler & King 2004), determined by the `traitsim` argument. 
+
+- `traitsim` either "BM" or "OU"
+- `sig2` is the instantaneous rate of character change for either model
+- `alpha` controls the strength of pull to the trait optimum and is for OU models only
+
+Once the regional community pool exists, the species are assembled into local communities under one of three assembly models, neutral, habitat filtering, and competitive exclusion, set using the `comsim` argument. The non-neutral assembly models use the phenotypic variation in the regional community and phenotypic matching and repulsion equations, for filtering and competition models respectively, to determine which species will survive in the local community. 
+
+- `comsim` either "neutral", "filtering", "competition", or "all"
+- `tau` controls the strength of the non-neutral assembly processes
+
+For filtering models, the lower `tau` is, the stronger the environmental filter. For competition models, the higher `tau`, the stronger the effects of competition. 
+
+For all of these parameters, a uniform prior distribution of parameter values or a fixed value can be designated. Many of the parameters have default uniform prior distributions, see the help page for details on each parameter.
+
+We will start with one simulation under a neutral model of assembly and BM trait evolution. The regional community pool will consist of 100 species and the local community pool will only have 50. All other parameters will be kept under their default uniform prior ranges. 
+
+```{r, message=FALSE, results="hide", eval=FALSE}
+## simulate 500 community datasets under all models of assembly
+## leave lambda, eps, sig2, and tau with their default prior ranges
+%%R
+Assembly.Data <- SimCommunityAssembly(sims = 1, 
+                                     N = 100, 
+                                     local = 50,
+                                     traitsim = "BM",
+                                     comsim = "neutral",
+                                     ## do you want summmary stats calculated?
+                                     output.sum.stats = TRUE,
+                                     ## do you want dispersion stats calculated?
+                                     output.phydisp.stats = FALSE)
+```
+
+```{r, message=FALSE, results="hide", eval=TRUE, include=FALSE}
+## simulate 500 community datasets under all models of assembly
+## leave lambda, eps, sig2, and tau with their default prior ranges
+Assembly.Data <- SimCommunityAssembly(sims = 1, 
+                                     N = 100, 
+                                     local = 50,
+                                     traitsim = "BM",
+                                     comsim = "neutral",
+                                     ## do you want summmary stats calculated?
+                                     output.sum.stats = TRUE,
+                                     ## do you want dispersion stats calculated?
+                                     output.phydisp.stats = FALSE)
+```
+
+> Note the additional flag options. If dispersion metrics should be calculated for each simulated community, that flag can be turned on. In addition to that, the summary statistics flag can be turned off.
+
+The output is a list of two data frames. The first is of all **parameters** and the second contains all **summary statistics**. In both cases, each row in the matrix is a unique simulation and the rows between matrices correspond. The `$` operator can be used to look at each matrix within the list. 
+
+```{r, eval=FALSE}
+%%R
+Assembly.Data
+```
+
+```{r, echo=FALSE}
+Assembly.Data
+```
+
+We will look at this output more in depth momentarily. First, let's simulate much more community data.
+
+Simulate 500 community datasets under all assembly models. We will fix the size of the regional pool and put a prior range on the size of the local species pool. All other parameters are still set with their default prior ranges. 
+
+```{r, eval=FALSE}
+## simulate 500 community datasets under all models of assembly
+## leave lambda, eps, sig2, and tau with their default prior ranges
+%%R
+Assembly.Data <- SimCommunityAssembly(sims = 500, 
+                                     N = c(100,200), 
+                                     local = c(20, 70),
+                                     traitsim = "BM",
+                                     comsim = "all",
+                                     lambda = c(0.05, 2.0),
+                                     eps = c(0.2, 0.8),
+                                     sig2 = c(.05, 3.0),
+                                     alpha = c(0.01, 0.2),
+                                     tau = c(1, 30))
+```
+```{r, echo=FALSE, message=FALSE, results='hide'}
+## simulate 500 community datasets under all models of assembly
+## leave lambda, eps, sig2, and tau with their default prior ranges
+Assembly.Data <- SimCommunityAssembly(sims = 500, 
+                                     N = c(100,200), 
+                                     local = c(20, 70),
+                                     traitsim = "BM",
+                                     comsim = "all",
+                                     lambda = c(0.05, 2.0),
+                                     eps = c(0.2, 0.8),
+                                     sig2 = c(.05, 3.0),
+                                     alpha = c(0.01, 0.2),
+                                     tau = c(1, 30))
+```
+
+### a) parameters
+
+The parameters are important to record for each simulation because, much like in ABC, `randomForest` relies on using the known paramter values for simulations to make estimate these parameters for empirical data.
+
+```{r message=FALSE, eval=FALSE}
+%%R
+## the first matrix is the parameters for each simulation
+head(Assembly.Data$params)
+```
+```{r echo=FALSE}
+## the first matrix is the parameters for each simulation
+head(Assembly.Data$params)
+```
+> Note that we record the extinction rate as `mu` rather than the extinction fraction `eps`. 
+
+As a sanity check, let's make sure that we are actually simulating under each model and verify that the parameters drawn match the prior distributions that were designated. 
+
+```{r, results="hide", eval=FALSE}
+%%R
+## this line lists the first 50 models simulated under 
+Assembly.Data$params$comsim[1:50]
+
+## see how many of each model were simulated; change "neutral" to "filtering" and "competition"
+sum(Assembly.Data$params$comsim=="neutral")
+```
+```{r, echo=FALSE}
+## this line lists all of the models simulated under 
+Assembly.Data$params$comsim[1:50]
+
+## see how many of each model were simulated; change "neutral" to "filtering" and "competition"
+sum(Assembly.Data$params$comsim=="neutral")
+```
+
+The number of simulations per model will be different for everyone, but hopefully each model has been simulated roughly 1/3 of the time.
+
+To verify the prior distributions, we can plot a histogram of all of the values used for the simulations for a given parameter and verify that it matches the prior distribution designated. Let's look at the `sig2` parameter, which we put a uniform prior on between 1.0 and 5.0.
+
+```{r, message=FALSE, eval=FALSE}
+%%R
+library(ggplot2)
+ggplot(data=Assembly.Data$params, aes(Assembly.Data$params$sig2)) + 
+  geom_histogram(binwidth = .1) +
+  xlab("sig2")
+```
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+ggplot(data=Assembly.Data$params, aes(Assembly.Data$params$sig2)) + 
+  geom_histogram(binwidth = .1) +
+  xlab("sig2")
+```
+
+We should see a uniform distribution between the upper and lower bound set. Have a look at some of the other parameters and verify the values simulated under match what was set.
+
+### b) summary statistics
+
+The summary statistics capture information about the phylogenetic and phenotypic variation across the regional and local community, as well as the interactions between the phylogenetic and phenotypic information in the local community. Go [here](https://compphylo.github.io/Oslo2019/CAMI_files/SumStats.html) for a short description of each summary statistic.
+
+```{r, eval=FALSE}
+%%R
+head(Assembly.Data$summary.stats)
+```
+```{r, echo=FALSE}
+head(Assembly.Data$summary.stats)
+```
+
+We can look at the distribution of values for each summary statistic and partition them by model. 
+
+```{r, eval=FALSE}
+%%R
+## have a look at all of the summary statistics
+colnames(Assembly.Data$summary.stats) 
+
+## replace HERE with a name of one of the summary statistics
+stats.by.model <- data.frame(model=Assembly.Data$params$comsim, 
+                  stat = Assembly.Data$summary.stats[,"Shgt"])
+
+ggplot(stats.by.model, aes(x=stat, fill=model)) +
+  geom_density(alpha=0.8) +
+  scale_fill_manual(values=c("#005679", "#00B7C4", "#FF8800")) 
+```
+```{r, echo=FALSE, fig.height=6, fig.width=8}
+## have a look at all of the summary statistics
+colnames(Assembly.Data$summary.stats) 
+
+## replace HERE with a name of one of the summary statistics
+stats.by.model <- data.frame(model=Assembly.Data$params$comsim, 
+                  stat = Assembly.Data$summary.stats[,"Shgt"])
+
+ggplot(stats.by.model, aes(x=stat, fill=model)) +
+  geom_density(alpha=0.8) +
+  scale_fill_manual(values=c("#005679", "#00B7C4", "#FF8800")) 
+```
+
+## 3. Random Forest
+
+The `randomForest` package implements Breiman’s ensemble random forest algorithm for classification and regression (Breiman 2001). Ensemble-ing is a "type of supervised learning technique where multiple models are trained on a training dataset and their individual outputs are combined by some rule to derive the final output.” Essentially, training data are used to build many classification trees and the predictions from each tree are combined for a final inference. The "rule" that governs how outputs are combined is most commonly averaging (for numerical data) or votes (for categorical). In our case, the predictions are model identities. 
+
+For more information on the `randomForest` R package [go here](https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/randomForest).
+
+```{r, message=FALSE, eval=FALSE}
+%%R
+library(randomForest)
+```
+
+To construct a classifier, the summary statistics are the predictor variables of the model, and what are used to construct the decision trees. The response variables are the model identities the summary statistics correspond to, and all decision trees end 
+
+Let's now build a random forest classifier with the community assembly data we have simulated, and then dive into more properties of the classifier. 
+
+
+```{r, eval=FALSE}
+%%R
+## The response variables
+modelIndex <- Assembly.Data$params[,"comsim"]
+
+## Organize the predictor variables with the response
+ReferenceTable <- data.frame(Assembly.Data$summary.stats, modelIndex)
+
+## build the classifier using all predictors, 
+RF.model <- randomForest(modelIndex ~., data=ReferenceTable, ntree=1000, importance=T)
+```
+```{r, echo=FALSE}
+## The response variables
+modelIndex <- Assembly.Data$params[,"comsim"]
+
+## Organize the predictor variables with the response
+ReferenceTable <- data.frame(Assembly.Data$summary.stats, modelIndex)
+
+## build the classifier using all predictors, 
+RF.model <- randomForest(modelIndex ~., data=ReferenceTable, ntree=1000, importance=T)
+```
+
+### a) error rates
+
+As mentioned before, RF is a supervised machine learning algorithm meaning that we are relying on training data to define our model in order to make accurate prediction. A major concern when making these classifiers is that the data are not sufficient to distinguish between the models. RF internally validates that accuracy of any given classifier by withholding some of the provided data in order to cross-validate the decision trees while they're being built. Essentially, we can see how often each model is being incorrectly classified, known as the **Out-of-Bag (OOB)** error rate.
+
+```{r, eval=FALSE}
+%%R
+RF.model
+```
+```{r, echo=FALSE}
+RF.model
+```
+
+
+The error rates for a classifier are not always final. Classifiers can be tuned to improve accuracy in classification; we will learn more about this tomorrow. For now, though, we can plot the forest object and see how the error rates change as trees are added to the forest. One of the biggest advantages of the enemble approach is that it adds predictive power to the forest, because alone, decision trees are weak predictors.
+
+```{r message=F, warning=F, eval=FALSE}
+%%R
+plot(RF.model, col=c( "gray50", "#005679","#00B7C4", "#FF8800"), lwd=2)
+legend("topright", legend=c("filtering", "competition", "neutral", "average"), fill=c("#00B7C4", "#005679", "#FF8800", "gray50"), bty="n", cex=1.2)
+```
+```{r echo=FALSE, fig.width=8, fig.height=6}
+plot(RF.model, col=c( "gray50", "#005679","#00B7C4", "#FF8800"), lwd=2)
+legend("topright", legend=c("filtering", "competition", "neutral", "average"), fill=c("#00B7C4", "#005679", "#FF8800", "gray50"), bty="n", cex=1.2)
+```
+
+## 4. References
+
+Breimen L. Random Forests. **2001** *Machine Learning*, 45, 5-32. [link](https://link.springer.com/content/pdf/10.1023%2FA%3A1010933404324.pdf)
+
+Butler, M.A. & King, A.A. **2004**. Phylogenetic Comparative Analysis: A Modeling Approach for Adaptive Evolution. *Am. Nat.*,164, 683-695. [link](https://www.journals.uchicago.edu/doi/pdfplus/10.1086/426002)
+
+Felsenstein, J. **1985**. Phylogenies and the Comparative Method. *Am. Nat.* 125, 1-15. [link](https://www.jstor.org/stable/pdf/2461605.pdf)
+
+Hansen, T.F. **1997**. Stabilizing Selection and the Comparative Analysis of Adaptation. *Evolution.* 51, 1341-1351. [link](https://onlinelibrary.wiley.com/doi/pdf/10.1111/j.1558-5646.1997.tb01457.x)
+
+Stadler, T. **2011**. Simulating trees with a fixed number of extant species. *Syst. Biol.*, 60, 676–684. [link](https://academic.oup.com/sysbio/article/60/5/676/1644435)
+
